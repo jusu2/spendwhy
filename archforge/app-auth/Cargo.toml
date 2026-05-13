@@ -1,0 +1,24 @@
+[package]
+name = "archforge-app-auth"
+version = "0.1.0"
+description = "Auth bounded-context use cases. Orchestrates domain + ports; never names a tech."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[dependencies]
+archforge-kernel = { workspace = true }
+archforge-contract-auth = { workspace = true }
+archforge-domain-auth = { workspace = true }
+async-trait = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+archforge-infra-auth-memory = { workspace = true }

@@ -1,0 +1,18 @@
+[package]
+name = "archforge-domain-auth"
+version = "0.1.0"
+description = "Auth bounded-context rich domain model (Always-Valid). Stays inside this crate."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[dependencies]
+archforge-kernel = { workspace = true }
+archforge-contract-auth = { workspace = true }

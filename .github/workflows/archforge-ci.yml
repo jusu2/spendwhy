@@ -1,0 +1,79 @@
+name: archforge-ci
+
+on:
+  push:
+    branches: [main, feat/archforge-**]
+    paths:
+      - "archforge/**"
+      - ".github/workflows/archforge-ci.yml"
+  pull_request:
+    paths:
+      - "archforge/**"
+      - ".github/workflows/archforge-ci.yml"
+
+defaults:
+  run:
+    working-directory: archforge
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: archforge
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: archforge
+      - run: cargo test --workspace --all-targets
+      # Demo binary must build with each backend feature isolated — invariant #5
+      # (every adapter behind the same Port) is partially checked here.
+      - run: cargo build -p auth-cli --no-default-features --features memory-backend
+      - run: cargo build -p auth-cli --no-default-features --features jsonfile-backend
+
+  invariants:
+    name: architectural invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: archforge
+      - name: install cargo-deny
+        run: cargo install --locked cargo-deny
+      - name: cargo-deny
+        run: cargo deny --manifest-path Cargo.toml check
+      - name: dependency-direction lint
+        run: pwsh scripts/check-invariants.ps1

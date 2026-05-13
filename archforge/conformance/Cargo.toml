@@ -1,0 +1,21 @@
+[package]
+name = "archforge-conformance"
+version = "0.1.0"
+description = "Port conformance test harness — every adapter must pass the same property tests."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[dependencies]
+archforge-kernel = { workspace = true }
+archforge-contract-auth = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+futures = { workspace = true }

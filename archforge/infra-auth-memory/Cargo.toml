@@ -1,0 +1,24 @@
+[package]
+name = "archforge-infra-auth-memory"
+version = "0.1.0"
+description = "In-memory adapter for auth ports (DashMap). Ideal for tests and UI prototyping."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[dependencies]
+archforge-kernel = { workspace = true }
+archforge-contract-auth = { workspace = true }
+async-trait = { workspace = true }
+dashmap = { workspace = true }
+
+[dev-dependencies]
+archforge-conformance = { workspace = true }
+tokio = { workspace = true }

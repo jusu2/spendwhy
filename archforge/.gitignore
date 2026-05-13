@@ -1,0 +1,4 @@
+# ArchForge owns its own target/ — don't pollute parent .gitignore.
+/target/
+**/*.rs.bk
+Cargo.lock.bak
