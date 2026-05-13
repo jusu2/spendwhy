@@ -47,7 +47,11 @@ class _RecordPageState extends State<RecordPage> {
     final text = _ctrl.text;
     _draftDebounce = Timer(_draftDebounceDuration, () {
       if (!mounted) return;
-      unawaited(context.read<AppSettings>().setDraft(text));
+      unawaited(
+        context.read<AppSettings>().setDraft(text).catchError((Object e) {
+          debugPrint('[RecordPage] draft save failed: $e');
+        }),
+      );
     });
   }
 

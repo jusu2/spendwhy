@@ -25,10 +25,11 @@ class RustBackend {
     final rv = dto.supportedRecoverySchemaVersion();
     if (fv != expectedFragmentSchema || rv != expectedRecoverySchema) {
       throw StateError(
-        '[RustBackend] FRB DTO schema mismatch: '
-        'fragment=$fv (expected $expectedFragmentSchema), '
-        'recovery=$rv (expected $expectedRecoverySchema). '
-        '请重新运行 flutter_rust_bridge_codegen generate。',
+        '[RustBackend] DTO schema version mismatch.\n'
+        'Expected: fragment=$expectedFragmentSchema, recovery=$expectedRecoverySchema\n'
+        'Actual:   fragment=$fv, recovery=$rv\n'
+        'This usually means flutter_rust_bridge codegen is out of sync with '
+        'the Rust crate. Run `flutter_rust_bridge_codegen generate` and rebuild.',
       );
     }
     if (kDebugMode) {
