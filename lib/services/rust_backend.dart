@@ -58,7 +58,7 @@ class RustBackend {
     schemaVersion: expectedRecoverySchema,
     id: r.id,
     createdAtMs: _toMs(r.createdAt),
-    intensity: r.intensity,
+    intensity: r.intensity.value,
     description: r.description,
     relatedFragmentIds: r.relatedFragmentIds,
   );

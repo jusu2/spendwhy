@@ -6,7 +6,7 @@
 //!   `DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true).toLocal()` 还原。
 //! - 不在 DTO 中放业务逻辑；任何转换或校验落在领域层。
 
-use crate::domain::{Fragment, Recovery, Stage};
+use crate::domain::{Fragment, FragmentId, Recovery, Stage};
 use crate::error::{AppError, AppResult};
 
 pub const FRAGMENT_DTO_SCHEMA_VERSION: u32 = 1;
@@ -67,15 +67,13 @@ impl FragmentDto {
             ));
         }
         let stage = Stage::from_code(&self.stage)?;
-        let fragment = Fragment {
-            id: self.id,
-            created_at_ms: self.created_at_ms,
-            intensity: self.intensity,
-            fade_period_days: self.fade_period_days,
+        Fragment::try_new(
+            self.id,
+            self.created_at_ms,
+            self.intensity,
+            self.fade_period_days,
             stage,
-        };
-        fragment.validate()?;
-        Ok(fragment)
+        )
     }
 }
 
@@ -90,15 +88,13 @@ impl RecoveryDto {
                 ),
             ));
         }
-        let recovery = Recovery {
-            id: self.id,
-            created_at_ms: self.created_at_ms,
-            intensity: self.intensity,
-            description: self.description,
-            related_fragment_ids: self.related_fragment_ids,
-        };
-        recovery.validate()?;
-        Ok(recovery)
+        Recovery::try_new(
+            self.id,
+            self.created_at_ms,
+            self.intensity,
+            self.description,
+            self.related_fragment_ids,
+        )
     }
 }
 
@@ -106,11 +102,15 @@ impl From<Recovery> for RecoveryDto {
     fn from(r: Recovery) -> Self {
         Self {
             schema_version: RECOVERY_DTO_SCHEMA_VERSION,
-            id: r.id,
-            created_at_ms: r.created_at_ms,
-            intensity: r.intensity,
-            description: r.description,
-            related_fragment_ids: r.related_fragment_ids,
+            id: r.id.into_string(),
+            created_at_ms: r.created_at.ms(),
+            intensity: r.intensity.value(),
+            description: r.description.into_string(),
+            related_fragment_ids: r
+                .related_fragment_ids
+                .into_iter()
+                .map(FragmentId::into_string)
+                .collect(),
         }
     }
 }

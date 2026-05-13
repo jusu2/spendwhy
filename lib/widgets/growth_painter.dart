@@ -52,7 +52,7 @@ class GrowthPainter extends CustomPainter {
     // === 恢复事件的光晕 ===
     for (final r in recoveries) {
       final x = _xFor(r.createdAt, size, pad);
-      final radius = 16.0 + r.intensity * 4.0;
+      final radius = 16.0 + r.intensity.value * 4.0;
       final glow = RadialGradient(
         colors: [
           (isDark ? AppColors.amberDark : AppColors.amber).withValues(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../i18n/strings.dart';
+import '../models/enums.dart';
 import '../models/fragment.dart';
 import '../state/fragments_provider.dart';
 
@@ -175,7 +176,7 @@ class _RecoveryDialogState extends State<RecoveryDialog> {
                   onTap: () async {
                     await context.read<FragmentsProvider>().addRecovery(
                       description: _ctrl.text.trim(),
-                      intensity: _intensity,
+                      intensity: Intensity.fromValue(_intensity),
                       relatedFragmentIds: _related.toList(),
                     );
                     if (context.mounted) {

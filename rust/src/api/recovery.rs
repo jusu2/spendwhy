@@ -25,6 +25,10 @@ pub fn record_recovery(
     Ok(RecordRecoveryOutcomeDto {
         schema_version: RECORD_RECOVERY_OUTCOME_DTO_SCHEMA_VERSION,
         recovery: outcome.recovery.into(),
-        fragments_to_advance: outcome.fragments_to_advance,
+        fragments_to_advance: outcome
+            .fragments_to_advance
+            .into_iter()
+            .map(|id| id.into_string())
+            .collect(),
     })
 }

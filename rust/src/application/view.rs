@@ -25,19 +25,13 @@ pub struct HomeView {
 }
 
 pub fn build_home_view(input: HomeViewInput) -> AppResult<HomeView> {
-    for f in &input.fragments {
-        f.validate()?;
-    }
-    for r in &input.recoveries {
-        r.validate()?;
-    }
     let levels = fade::apply_fade(&input.fragments, &input.recoveries, input.now_ms);
     let fragments = input
         .fragments
         .iter()
         .zip(levels.iter())
         .map(|(f, level)| FragmentView {
-            id: f.id.clone(),
+            id: f.id.as_str().to_owned(),
             fade_level: *level,
         })
         .collect();

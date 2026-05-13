@@ -124,7 +124,7 @@ class FragmentsProvider extends ChangeNotifier {
 
   Future<Recovery> addRecovery({
     required String description,
-    required int intensity,
+    required Intensity intensity,
     List<String> relatedFragmentIds = const [],
   }) async {
     final now = _now();

@@ -92,7 +92,7 @@ void main() {
         try {
           await provider.addRecovery(
             description: 'better',
-            intensity: 4,
+            intensity: Intensity.severe,
             relatedFragmentIds: [f.id],
           );
         } catch (e) {
@@ -152,7 +152,7 @@ void main() {
         id: 'rec-1',
         createdAt: fixedNow,
         description: 'desc',
-        intensity: 3,
+        intensity: Intensity.hard,
         relatedFragmentIds: const ['frag-x'],
       );
       await repo.recordRecoveryTx(recovery: r, advancedFragments: const []);

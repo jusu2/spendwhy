@@ -6,17 +6,17 @@ use super::{Fragment, Recovery};
 
 /// 单条碎片清晰度 0..=1（1 = 清晰，0 = 几乎不可见）
 pub fn fade_level(fragment: &Fragment, recoveries: &[Recovery], now_ms: i64) -> f64 {
-    let age_days = days_between(now_ms, fragment.created_at_ms);
-    let time_factor = (age_days / fragment.fade_period_days as f64).clamp(0.0, 1.0);
+    let age_days = days_between(now_ms, fragment.created_at.ms());
+    let time_factor = (age_days / f64::from(fragment.fade_period_days.days())).clamp(0.0, 1.0);
 
     let mut recovery_factor = 0.0_f64;
     for r in recoveries {
         if !r.related_fragment_ids.iter().any(|id| id == &fragment.id) {
             continue;
         }
-        let since = days_between(now_ms, r.created_at_ms).max(0.0);
+        let since = days_between(now_ms, r.created_at.ms()).max(0.0);
         let time_weight = (-since / 60.0).exp();
-        recovery_factor += (r.intensity as f64 / 5.0) * 0.25 * time_weight;
+        recovery_factor += (f64::from(r.intensity.value()) / 5.0) * 0.25 * time_weight;
     }
 
     (1.0 - time_factor - recovery_factor).clamp(0.0, 1.0)
@@ -39,7 +39,7 @@ pub fn growth_score(fragments: &[Fragment], recoveries: &[Recovery], now_ms: i64
     let mut weight_sum = 0.0_f64;
     for f in fragments {
         let clarity = fade_level(f, recoveries, now_ms);
-        let w = f.intensity as f64;
+        let w = f64::from(f.intensity.value());
         weighted_clarity += clarity * w;
         weight_sum += w;
     }
@@ -88,13 +88,19 @@ mod tests {
     }
 
     fn fragment(id: &str, created_day: i64, intensity: u8) -> Fragment {
-        Fragment {
-            id: id.into(),
-            created_at_ms: day_ms(created_day),
+        Fragment::try_new(id, day_ms(created_day), intensity, 270, Stage::Outburst)
+            .expect("valid fragment")
+    }
+
+    fn recovery(id: &str, day: i64, intensity: u8, related: &[&str]) -> Recovery {
+        Recovery::try_new(
+            id,
+            day_ms(day),
             intensity,
-            fade_period_days: 270,
-            stage: Stage::Outburst,
-        }
+            "ok",
+            related.iter().map(|s| (*s).to_string()).collect(),
+        )
+        .expect("valid recovery")
     }
 
     #[test]
@@ -114,14 +120,8 @@ mod tests {
         let f = fragment("a", 0, 3);
         let now = day_ms(30);
         let baseline = fade_level(&f, &[], now);
-        let r = Recovery {
-            id: "r".into(),
-            created_at_ms: day_ms(28),
-            intensity: 5,
-            description: "ok".into(),
-            related_fragment_ids: vec!["a".into()],
-        };
-        let after = fade_level(&f, &[r], now);
+        let r = recovery("r", 28, 5, &["a"]);
+        let after = fade_level(&f, std::slice::from_ref(&r), now);
         assert!(after < baseline);
     }
 
@@ -130,14 +130,8 @@ mod tests {
         let f = fragment("a", 0, 5);
         let now = day_ms(20);
         let before = growth_score(std::slice::from_ref(&f), &[], now);
-        let r = Recovery {
-            id: "r".into(),
-            created_at_ms: day_ms(18),
-            intensity: 5,
-            description: "ok".into(),
-            related_fragment_ids: vec!["a".into()],
-        };
-        let after = growth_score(&[f], &[r], now);
+        let r = recovery("r", 18, 5, &["a"]);
+        let after = growth_score(&[f], std::slice::from_ref(&r), now);
         assert!(after > before);
     }
 
@@ -158,7 +152,7 @@ mod tests {
     #[test]
     fn growth_score_series_length_is_samples_plus_one() {
         let f = fragment("a", 0, 3);
-        let s = growth_score_series(&[f], &[], day_ms(0), day_ms(30), 10);
+        let s = growth_score_series(std::slice::from_ref(&f), &[], day_ms(0), day_ms(30), 10);
         assert_eq!(s.len(), 11);
     }
 
@@ -177,7 +171,7 @@ mod tests {
     fn growth_score_series_clamps_samples_to_at_least_one() {
         // samples = 0 不能除零；应当返回 2 个点（i=0..=1）。
         let f = fragment("a", 0, 3);
-        let s = growth_score_series(&[f], &[], 0, day_ms(10), 0);
+        let s = growth_score_series(std::slice::from_ref(&f), &[], 0, day_ms(10), 0);
         assert_eq!(s.len(), 2);
     }
 
@@ -185,7 +179,7 @@ mod tests {
     fn growth_score_series_handles_inverted_range() {
         // end < start 时 span 被夹为 0，所有采样点位于 start 。
         let f = fragment("a", 0, 3);
-        let s = growth_score_series(&[f], &[], day_ms(20), day_ms(10), 4);
+        let s = growth_score_series(std::slice::from_ref(&f), &[], day_ms(20), day_ms(10), 4);
         assert_eq!(s.len(), 5);
         let first = s[0];
         assert!(s.iter().all(|x| (x - first).abs() < 1e-9));

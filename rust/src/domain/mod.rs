@@ -5,6 +5,8 @@
 pub mod fade;
 pub mod fragment;
 pub mod recovery;
+pub mod value;
 
 pub use fragment::{Fragment, Stage};
 pub use recovery::Recovery;
+pub use value::{AppTime, FadePeriodDays, FragmentId, Intensity, NonEmptyText, RecoveryId};
