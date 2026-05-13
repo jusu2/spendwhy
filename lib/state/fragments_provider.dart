@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/database.dart';
+import '../data/fragment_repository.dart';
 import '../models/enums.dart';
 import '../models/fragment.dart';
 import '../models/recovery.dart';
@@ -15,14 +16,17 @@ import '../services/rust_backend.dart';
 /// 时间源 [_now] 默认使用系统时钟，但允许测试注入固定时间，
 /// 让 fade_level、createdAt、growth_score 等基于时间的逻辑可断言。
 class FragmentsProvider extends ChangeNotifier {
-  FragmentsProvider({AppDatabase? db, Uuid? uuid, DateTime Function()? now})
-    : _db = db ?? AppDatabase.instance,
-      _uuid = uuid ?? const Uuid(),
-      _now = now ?? _systemNowUtc;
+  FragmentsProvider({
+    FragmentRepository? db,
+    Uuid? uuid,
+    DateTime Function()? now,
+  }) : _db = db ?? AppDatabase.instance,
+       _uuid = uuid ?? const Uuid(),
+       _now = now ?? _systemNowUtc;
 
   static DateTime _systemNowUtc() => DateTime.now().toUtc();
 
-  final AppDatabase _db;
+  final FragmentRepository _db;
   final Uuid _uuid;
   final DateTime Function() _now;
 

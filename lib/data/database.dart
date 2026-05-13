@@ -7,10 +7,11 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/fragment.dart';
 import '../models/recovery.dart';
+import 'fragment_repository.dart';
 
 /// SQLite 本地数据层。
 /// V1 仅做明文 + sqflite，V1.5 之后再加 SQLCipher 或文件级加密。
-class AppDatabase {
+class AppDatabase implements FragmentRepository {
   AppDatabase._();
   static final AppDatabase instance = AppDatabase._();
 
@@ -64,6 +65,7 @@ class AppDatabase {
   }
 
   // === Fragments ===
+  @override
   Future<void> insertFragment(Fragment f) async {
     final database = await db;
     await database.insert(
@@ -73,6 +75,7 @@ class AppDatabase {
     );
   }
 
+  @override
   Future<void> updateFragment(Fragment f) async {
     final database = await db;
     await database.update(
@@ -83,11 +86,13 @@ class AppDatabase {
     );
   }
 
+  @override
   Future<void> deleteFragment(String id) async {
     final database = await db;
     await database.delete('fragments', where: 'id = ?', whereArgs: [id]);
   }
 
+  @override
   Future<List<Fragment>> listFragments({int? limit}) async {
     final database = await db;
     final rows = await database.query(
@@ -98,6 +103,7 @@ class AppDatabase {
     return rows.map(Fragment.fromMap).toList();
   }
 
+  @override
   Future<Fragment?> getFragment(String id) async {
     final database = await db;
     final rows = await database.query(
@@ -119,6 +125,7 @@ class AppDatabase {
     );
   }
 
+  @override
   Future<List<Recovery>> listRecoveries({int? limit}) async {
     final database = await db;
     final rows = await database.query(
@@ -129,6 +136,7 @@ class AppDatabase {
     return rows.map(Recovery.fromMap).toList();
   }
 
+  @override
   Future<List<Recovery>> recoveriesForFragment(String fragmentId) async {
     final all = await listRecoveries();
     return all.where((r) => r.relatedFragmentIds.contains(fragmentId)).toList();
@@ -139,6 +147,7 @@ class AppDatabase {
   /// 在单个事务里写入一条 [recovery] 并把 [advancedFragments] 的 stage 推进。
   ///
   /// 任一步失败都会回滚，避免出现「恢复已记录但相关碎片未推进」之类的半完成状态。
+  @override
   Future<void> recordRecoveryTx({
     required Recovery recovery,
     required List<Fragment> advancedFragments,

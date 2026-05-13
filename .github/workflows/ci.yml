@@ -4,9 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   flutter:
+    name: Flutter format / analyze / test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,14 +20,17 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Install Flutter dependencies
+      - name: Pub get
         run: flutter pub get
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
       - name: Analyze
         run: flutter analyze
-      - name: Test
-        run: flutter test
+      - name: Unit tests
+        run: flutter test --no-pub
 
   rust:
+    name: Rust fmt / clippy / test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,9 +40,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust -> target
       - name: Format
-        run: cargo fmt --check
+        run: cargo fmt --all -- --check
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Test
-        run: cargo test
+        run: cargo test --all-features
