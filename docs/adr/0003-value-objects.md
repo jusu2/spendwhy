@@ -81,8 +81,8 @@ extension type const FragmentId._(String value) {
 
 ### 实体构造
 
-`Fragment::try_new(...)` 返回 `AppResult<Fragment>`；旧 `validate()` 删除。  
-DTO `into_domain` 改为组合 `try_new` 调用 + Stage::from_code。  
+`Fragment::try_new(...)` 返回 `AppResult<Fragment>`；旧 `validate()` 删除。
+DTO `into_domain` 改为组合 `try_new` 调用 + Stage::from_code。
 **净效果**：领域内任何方法签名出现 `&Fragment`，调用方都不需要再做合法性检查 —— 类型已经保证。
 
 ### Dart 侧妥协
@@ -95,7 +95,7 @@ Dart 缺乏 `Result` 语义；本 ADR 选择：
 
 ### `==` / `hashCode`
 
-Dart 实体加上 `==` / `hashCode`（`Object.hash`）；Rust 实体加 `#[derive(PartialEq, Eq)]`。  
+Dart 实体加上 `==` / `hashCode`（`Object.hash`）；Rust 实体加 `#[derive(PartialEq, Eq)]`。
 这是后续单元测试 / 状态比较 / Provider 去抖的基础。
 
 ## 不在本 ADR 范围

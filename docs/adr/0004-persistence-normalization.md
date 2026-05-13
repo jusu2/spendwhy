@@ -2,7 +2,9 @@
 
 ## 状态
 
-Proposed — 计划在 ADR-0003 完成之后实施；将与 ADR-0002（加密）合并为一次大版本迁移。
+**Accepted — 与本 ADR 一同提交的 sqflite v2 schema + v1→v2 迁移即为首版实施**。
+见 [lib/data/database.dart](../../lib/data/database.dart)。
+集成测试：[test/data/repository_contract_test.dart](../../test/data/repository_contract_test.dart)。
 
 ## 背景
 

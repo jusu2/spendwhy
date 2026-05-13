@@ -2,7 +2,21 @@
 
 ## 状态
 
-Proposed — 计划在 ADR-0003（值对象层）落地之后实施。
+**Proposed — 仅有 schema 占位列已随 ADR-0004 一同落底**。
+
+本 ADR 的代码实现快照：
+
+- ✅ SQLite 列已预留：`fragments.content_cipher / content_nonce / content_key_id`、
+  `recoveries.content_cipher / content_nonce / content_key_id`、`crypto_meta` 全表
+  【见 [lib/data/database.dart](../../lib/data/database.dart) `_createSchemaV2`】。
+  这意味着未来接入 AES-256-GCM 加密 **无需再改 schema**。
+- ❌ 加密管线本身（DEK 包裹、AAD 绑定、Keychain/Keystore/DPAPI、
+  密钥轮换、迁移工具）未实施。任何“只实现一半”都会造成数据不可解或静默丢失。
+
+下一步：以独立 commit 逐项交付 1）平台原生密钥插件、
+2）Rust crypto 模块（`aes-gcm` + `getrandom`）、3）写路径 hook、
+4）从明文迁移到密文的一次性任务（读明文 → 加密入库 → 三重校验 →
+清除明文列）。
 
 ## 背景
 

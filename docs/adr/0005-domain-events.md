@@ -2,7 +2,9 @@
 
 ## 状态
 
-Proposed — 计划在 ADR-0003/0004 落地后实施。
+**Accepted — Dart 侧 append-only `event_log` 表与仓储写路径钩子随本 ADR 提交实施**。
+Rust 侧重构（use case 返回 `(state, Vec<Event>)`）留待后续 commit。
+见 [lib/data/domain_event.dart](../../lib/data/domain_event.dart) 与 [lib/data/database.dart](../../lib/data/database.dart)。
 
 ## 背景
 
@@ -78,7 +80,7 @@ pub fn record_recovery(input) -> AppResult<(Recovery, Vec<DomainEvent>)> {
 pub fn list_timeline(before: AppTimeDto, limit: u32) -> AppResult<Vec<TimelineEntryDto>>;
 ```
 
-UI 直接消费 `TimelineEntryDto`，每条目自带 occurred_at、kind、本地化 label payload。  
+UI 直接消费 `TimelineEntryDto`，每条目自带 occurred_at、kind、本地化 label payload。
 "成长页"未来可以从一条数字进化为一条叙事时间线。
 
 ### 不上 Event Sourcing
