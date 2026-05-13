@@ -6,6 +6,27 @@
 import 'api/dto.dart';
 import 'api/fade.dart';
 import 'api/recovery.dart';
+import 'api/transport/common.dart';
+import 'api/transport/pattern_a_sync.dart';
+import 'api/transport/pattern_b_async.dart';
+import 'api/transport/pattern_c_stream.dart';
+import 'api/transport/pattern_d_cancel.dart';
+import 'api/transport/pattern_e_progress.dart';
+import 'api/transport/pattern_f_opaque.dart';
+import 'api/transport/pattern_g_bytes.dart';
+import 'api/transport/pattern_h_duplex.dart';
+import 'api/transport/pattern_i_event_bus.dart';
+import 'api/transport/pattern_k_pagination.dart';
+import 'api/transport/pattern_l_idempotent.dart';
+import 'api/transport/pattern_m_callback.dart';
+import 'api/transport/pattern_n_semaphore.dart';
+import 'api/transport/pattern_p_singleton.dart';
+import 'api/transport/pattern_q_mock.dart';
+import 'api/transport/pattern_r_json.dart';
+import 'api/transport/pattern_s_file_handoff.dart';
+import 'api/transport/pattern_t_panic_safety.dart';
+import 'api/transport/pattern_u_structured.dart';
+import 'api/transport/pattern_v_request_meta.dart';
 import 'api/view.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -59,6 +80,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   @override
   Future<void> executeRustInitializers() async {
     await api.crateApiSimpleInitApp();
+    await api.crateApiTransportPatternPSingletonTransportInit();
   }
 
   @override
@@ -69,7 +91,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 693781993;
+  int get rustContentHash => 633768629;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -81,6 +103,57 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  Future<void> crateApiTransportCommonCancelHandleCancel({
+    required CancelHandle that,
+  });
+
+  Future<CancelHandle> crateApiTransportCommonCancelHandleDefault();
+
+  bool crateApiTransportCommonCancelHandleIsCancelled({
+    required CancelHandle that,
+  });
+
+  Future<CancelHandle> crateApiTransportCommonCancelHandleNew();
+
+  Stream<TransportSampleReplEvent>
+  crateApiTransportPatternHDuplexTransportSampleReplBindEvents({
+    required TransportSampleRepl that,
+  });
+
+  Future<void> crateApiTransportPatternHDuplexTransportSampleReplClose({
+    required TransportSampleRepl that,
+  });
+
+  Future<TransportSampleRepl>
+  crateApiTransportPatternHDuplexTransportSampleReplDefault();
+
+  Future<TransportSampleRepl>
+  crateApiTransportPatternHDuplexTransportSampleReplNew();
+
+  Future<void> crateApiTransportPatternHDuplexTransportSampleReplSubmit({
+    required TransportSampleRepl that,
+    required String command,
+  });
+
+  Future<void> crateApiTransportPatternFOpaqueTransportSampleSessionDispose({
+    required TransportSampleSession that,
+  });
+
+  Future<void> crateApiTransportPatternFOpaqueTransportSampleSessionIncrement({
+    required TransportSampleSession that,
+    required PlatformInt64 by,
+  });
+
+  Future<TransportSampleSession>
+  crateApiTransportPatternFOpaqueTransportSampleSessionOpen({
+    required PlatformInt64 initial,
+  });
+
+  Future<PlatformInt64>
+  crateApiTransportPatternFOpaqueTransportSampleSessionSnapshot({
+    required TransportSampleSession that,
+  });
+
   HomeViewDto crateApiViewBuildHomeView({
     required List<FragmentDto> fragments,
     required List<RecoveryDto> recoveries,
@@ -109,14 +182,208 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiSimpleInitApp();
 
+  Future<CancelHandle> crateApiTransportCommonNewCancelHandle();
+
+  Future<void> crateApiTransportPatternIEventBusPublishEvent({
+    required String topic,
+    required String payload,
+  });
+
   RecordRecoveryOutcomeDto crateApiRecoveryRecordRecovery({
     required RecoveryDto recovery,
     required List<FragmentDto> relatedFragments,
   });
 
+  Stream<TransportSampleEventDto>
+  crateApiTransportPatternIEventBusSubscribeEvents({
+    required bool includeSnapshot,
+  });
+
   int crateApiDtoSupportedFragmentSchemaVersion();
 
   int crateApiDtoSupportedRecoverySchemaVersion();
+
+  Future<void> crateApiTransportPatternPSingletonTransportInit();
+
+  TransportRuntimeInfo crateApiTransportPatternPSingletonTransportRuntimeInfo();
+
+  PlatformInt64 crateApiTransportPatternPSingletonTransportRuntimeStartedAtMs();
+
+  String crateApiTransportPatternPSingletonTransportRuntimeVersion();
+
+  PlatformInt64 crateApiTransportPatternASyncTransportSampleAdd({
+    required PlatformInt64 a,
+    required PlatformInt64 b,
+  });
+
+  Future<TransportSampleReceiptDto>
+  crateApiTransportPatternLIdempotentTransportSampleApplyOnce({
+    required String idempotencyKey,
+    required String payload,
+  });
+
+  Future<Uint8List> crateApiTransportPatternGBytesTransportSampleBigBytes({
+    required BigInt size,
+  });
+
+  Stream<Uint8List> crateApiTransportPatternGBytesTransportSampleChunkStream({
+    required BigInt totalSize,
+    required BigInt chunkSize,
+  });
+
+  double crateApiTransportPatternASyncTransportSampleClampPercent({
+    required double value,
+  });
+
+  Future<String> crateApiTransportPatternBAsyncTransportSampleCompute({
+    required String input,
+  });
+
+  Future<bool>
+  crateApiTransportPatternNSemaphoreTransportSampleConfigureSemaphore({
+    required String name,
+    required int permits,
+  });
+
+  Future<TransportSampleFileReceiptDto>
+  crateApiTransportPatternSFileHandoffTransportSampleConsumeFile({
+    required String path,
+    String? expectedSha256,
+    required bool deleteAfter,
+  });
+
+  Future<int>
+  crateApiTransportPatternIEventBusTransportSampleEventBusClearSnapshot();
+
+  Future<TransportSampleFanoutResult>
+  crateApiTransportPatternUStructuredTransportSampleFanout({
+    required List<String> inputs,
+    required BigInt perTaskMs,
+    required CancelHandle cancel,
+  });
+
+  Future<PlatformInt64>
+  crateApiTransportPatternQMockTransportSampleFreshnessMs({
+    required PlatformInt64 createdAtMs,
+  });
+
+  Future<int>
+  crateApiTransportPatternLIdempotentTransportSampleIdempotencyCacheClear();
+
+  Future<String> crateApiTransportPatternRJsonTransportSampleJsonPassthrough({
+    required String payloadJson,
+  });
+
+  Future<TransportSamplePage>
+  crateApiTransportPatternKPaginationTransportSampleListPage({
+    String? cursor,
+    required int limit,
+  });
+
+  Future<TransportSampleRepl>
+  crateApiTransportPatternHDuplexTransportSampleOpenRepl();
+
+  Future<TransportSampleSession>
+  crateApiTransportPatternFOpaqueTransportSampleOpenSession({
+    required PlatformInt64 initial,
+  });
+
+  Future<String> crateApiTransportPatternTPanicSafetyTransportSamplePanicDemo({
+    required bool shouldPanic,
+  });
+
+  Stream<ProgressDto>
+  crateApiTransportPatternEProgressTransportSampleProgressJob({
+    required int steps,
+    required BigInt stepDurationMs,
+    required CancelHandle cancel,
+  });
+
+  Future<String> crateApiTransportPatternUStructuredTransportSampleRace({
+    required List<String> candidates,
+    required BigInt perTaskMs,
+  });
+
+  Future<int>
+  crateApiTransportPatternNSemaphoreTransportSampleSemaphoreAvailable({
+    required String name,
+  });
+
+  Future<String> crateApiTransportPatternDCancelTransportSampleSlowJob({
+    required String input,
+    required int steps,
+    required BigInt stepMs,
+    required CancelHandle cancel,
+  });
+
+  Future<String> crateApiTransportPatternNSemaphoreTransportSampleThrottledOp({
+    required String name,
+    required BigInt acquireTimeoutMs,
+    required String input,
+  });
+
+  Stream<TransportSampleTickDto>
+  crateApiTransportPatternCStreamTransportSampleTicks({
+    required BigInt intervalMs,
+    required BigInt count,
+  });
+
+  Future<void> crateApiTransportPatternVRequestMetaTransportSampleValidateMeta({
+    required TransportRequestMeta meta,
+  });
+
+  Future<bool> crateApiTransportPatternMCallbackTransportSampleWithConfirm({
+    required String prompt,
+    required BigInt timeoutMs,
+    required FutureOr<bool> Function(String) confirm,
+  });
+
+  Future<List<String?>>
+  crateApiTransportPatternMCallbackTransportSampleWithKvProvider({
+    required List<String> keys,
+    required BigInt perKeyTimeoutMs,
+    required FutureOr<String?> Function(String) get_,
+  });
+
+  Future<TransportSampleMetaReceiptDto>
+  crateApiTransportPatternVRequestMetaTransportSampleWithMeta({
+    required TransportRequestMeta meta,
+    required String payload,
+    required BigInt workMs,
+  });
+
+  Future<String> crateApiTransportPatternBAsyncTransportSampleWithTimeout({
+    required String input,
+    required BigInt timeoutMs,
+  });
+
+  Future<void> crateApiTransportPatternPSingletonTransportShutdown();
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_CancelHandle;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_CancelHandle;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_CancelHandlePtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_TransportSampleRepl;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_TransportSampleRepl;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_TransportSampleReplPtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_TransportSampleSession;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_TransportSampleSession;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_TransportSampleSessionPtr;
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -126,6 +393,470 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required super.generalizedFrbRustBinding,
     required super.portManager,
   });
+
+  @override
+  Future<void> crateApiTransportCommonCancelHandleCancel({
+    required CancelHandle that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 1,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportCommonCancelHandleCancelConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportCommonCancelHandleCancelConstMeta =>
+      const TaskConstMeta(debugName: "CancelHandle_cancel", argNames: ["that"]);
+
+  @override
+  Future<CancelHandle> crateApiTransportCommonCancelHandleDefault() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportCommonCancelHandleDefaultConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportCommonCancelHandleDefaultConstMeta =>
+      const TaskConstMeta(debugName: "CancelHandle_default", argNames: []);
+
+  @override
+  bool crateApiTransportCommonCancelHandleIsCancelled({
+    required CancelHandle that,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportCommonCancelHandleIsCancelledConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportCommonCancelHandleIsCancelledConstMeta =>
+      const TaskConstMeta(
+        debugName: "CancelHandle_is_cancelled",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<CancelHandle> crateApiTransportCommonCancelHandleNew() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportCommonCancelHandleNewConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportCommonCancelHandleNewConstMeta =>
+      const TaskConstMeta(debugName: "CancelHandle_new", argNames: []);
+
+  @override
+  Stream<TransportSampleReplEvent>
+  crateApiTransportPatternHDuplexTransportSampleReplBindEvents({
+    required TransportSampleRepl that,
+  }) {
+    final sink = RustStreamSink<TransportSampleReplEvent>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+              that,
+              serializer,
+            );
+            sse_encode_StreamSink_transport_sample_repl_event_Sse(
+              sink,
+              serializer,
+            );
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 6,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_transport_error,
+          ),
+          constMeta:
+              kCrateApiTransportPatternHDuplexTransportSampleReplBindEventsConstMeta,
+          argValues: [that, sink],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternHDuplexTransportSampleReplBindEventsConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleRepl_bind_events",
+        argNames: ["that", "sink"],
+      );
+
+  @override
+  Future<void> crateApiTransportPatternHDuplexTransportSampleReplClose({
+    required TransportSampleRepl that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternHDuplexTransportSampleReplCloseConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternHDuplexTransportSampleReplCloseConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleRepl_close",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<TransportSampleRepl>
+  crateApiTransportPatternHDuplexTransportSampleReplDefault() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternHDuplexTransportSampleReplDefaultConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternHDuplexTransportSampleReplDefaultConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleRepl_default",
+        argNames: [],
+      );
+
+  @override
+  Future<TransportSampleRepl>
+  crateApiTransportPatternHDuplexTransportSampleReplNew() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternHDuplexTransportSampleReplNewConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternHDuplexTransportSampleReplNewConstMeta =>
+      const TaskConstMeta(debugName: "TransportSampleRepl_new", argNames: []);
+
+  @override
+  Future<void> crateApiTransportPatternHDuplexTransportSampleReplSubmit({
+    required TransportSampleRepl that,
+    required String command,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+            that,
+            serializer,
+          );
+          sse_encode_String(command, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternHDuplexTransportSampleReplSubmitConstMeta,
+        argValues: [that, command],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternHDuplexTransportSampleReplSubmitConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleRepl_submit",
+        argNames: ["that", "command"],
+      );
+
+  @override
+  Future<void> crateApiTransportPatternFOpaqueTransportSampleSessionDispose({
+    required TransportSampleSession that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternFOpaqueTransportSampleSessionDisposeConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternFOpaqueTransportSampleSessionDisposeConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleSession_dispose",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<void> crateApiTransportPatternFOpaqueTransportSampleSessionIncrement({
+    required TransportSampleSession that,
+    required PlatformInt64 by,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+            that,
+            serializer,
+          );
+          sse_encode_i_64(by, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternFOpaqueTransportSampleSessionIncrementConstMeta,
+        argValues: [that, by],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternFOpaqueTransportSampleSessionIncrementConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleSession_increment",
+        argNames: ["that", "by"],
+      );
+
+  @override
+  Future<TransportSampleSession>
+  crateApiTransportPatternFOpaqueTransportSampleSessionOpen({
+    required PlatformInt64 initial,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(initial, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternFOpaqueTransportSampleSessionOpenConstMeta,
+        argValues: [initial],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternFOpaqueTransportSampleSessionOpenConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleSession_open",
+        argNames: ["initial"],
+      );
+
+  @override
+  Future<PlatformInt64>
+  crateApiTransportPatternFOpaqueTransportSampleSessionSnapshot({
+    required TransportSampleSession that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_i_64,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternFOpaqueTransportSampleSessionSnapshotConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternFOpaqueTransportSampleSessionSnapshotConstMeta =>
+      const TaskConstMeta(
+        debugName: "TransportSampleSession_snapshot",
+        argNames: ["that"],
+      );
 
   @override
   HomeViewDto crateApiViewBuildHomeView({
@@ -140,7 +871,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_fragment_dto(fragments, serializer);
           sse_encode_list_recovery_dto(recoveries, serializer);
           sse_encode_i_64(nowMs, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_home_view_dto,
@@ -171,7 +902,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_box_autoadd_fragment_dto(fragment, serializer);
           sse_encode_list_recovery_dto(recoveries, serializer);
           sse_encode_i_64(nowMs, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_f_64,
@@ -202,7 +933,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_fragment_dto(fragments, serializer);
           sse_encode_list_recovery_dto(recoveries, serializer);
           sse_encode_i_64(nowMs, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_f_64,
@@ -237,7 +968,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_i_64(startMs, serializer);
           sse_encode_i_64(endMs, serializer);
           sse_encode_u_32(samples, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_f_64_strict,
@@ -265,7 +996,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 19,
             port: port_,
           );
         },
@@ -284,6 +1015,69 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
+  Future<CancelHandle> crateApiTransportCommonNewCancelHandle() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportCommonNewCancelHandleConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportCommonNewCancelHandleConstMeta =>
+      const TaskConstMeta(debugName: "new_cancel_handle", argNames: []);
+
+  @override
+  Future<void> crateApiTransportPatternIEventBusPublishEvent({
+    required String topic,
+    required String payload,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(topic, serializer);
+          sse_encode_String(payload, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 21,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta: kCrateApiTransportPatternIEventBusPublishEventConstMeta,
+        argValues: [topic, payload],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportPatternIEventBusPublishEventConstMeta =>
+      const TaskConstMeta(
+        debugName: "publish_event",
+        argNames: ["topic", "payload"],
+      );
+
+  @override
   RecordRecoveryOutcomeDto crateApiRecoveryRecordRecovery({
     required RecoveryDto recovery,
     required List<FragmentDto> relatedFragments,
@@ -294,7 +1088,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_box_autoadd_recovery_dto(recovery, serializer);
           sse_encode_list_fragment_dto(relatedFragments, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_record_recovery_outcome_dto,
@@ -314,12 +1108,55 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Stream<TransportSampleEventDto>
+  crateApiTransportPatternIEventBusSubscribeEvents({
+    required bool includeSnapshot,
+  }) {
+    final sink = RustStreamSink<TransportSampleEventDto>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_StreamSink_transport_sample_event_dto_Sse(
+              sink,
+              serializer,
+            );
+            sse_encode_bool(includeSnapshot, serializer);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 23,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_transport_error,
+          ),
+          constMeta: kCrateApiTransportPatternIEventBusSubscribeEventsConstMeta,
+          argValues: [sink, includeSnapshot],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternIEventBusSubscribeEventsConstMeta =>
+      const TaskConstMeta(
+        debugName: "subscribe_events",
+        argNames: ["sink", "includeSnapshot"],
+      );
+
+  @override
   int crateApiDtoSupportedFragmentSchemaVersion() {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_u_32,
@@ -344,7 +1181,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_u_32,
@@ -363,6 +1200,1292 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         argNames: [],
       );
 
+  @override
+  Future<void> crateApiTransportPatternPSingletonTransportInit() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 26,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportPatternPSingletonTransportInitConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportPatternPSingletonTransportInitConstMeta =>
+      const TaskConstMeta(debugName: "transport_init", argNames: []);
+
+  @override
+  TransportRuntimeInfo
+  crateApiTransportPatternPSingletonTransportRuntimeInfo() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_runtime_info,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternPSingletonTransportRuntimeInfoConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternPSingletonTransportRuntimeInfoConstMeta =>
+      const TaskConstMeta(debugName: "transport_runtime_info", argNames: []);
+
+  @override
+  PlatformInt64
+  crateApiTransportPatternPSingletonTransportRuntimeStartedAtMs() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_i_64,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternPSingletonTransportRuntimeStartedAtMsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternPSingletonTransportRuntimeStartedAtMsConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_runtime_started_at_ms",
+        argNames: [],
+      );
+
+  @override
+  String crateApiTransportPatternPSingletonTransportRuntimeVersion() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternPSingletonTransportRuntimeVersionConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternPSingletonTransportRuntimeVersionConstMeta =>
+      const TaskConstMeta(debugName: "transport_runtime_version", argNames: []);
+
+  @override
+  PlatformInt64 crateApiTransportPatternASyncTransportSampleAdd({
+    required PlatformInt64 a,
+    required PlatformInt64 b,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(a, serializer);
+          sse_encode_i_64(b, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_i_64,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTransportPatternASyncTransportSampleAddConstMeta,
+        argValues: [a, b],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTransportPatternASyncTransportSampleAddConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_add",
+        argNames: ["a", "b"],
+      );
+
+  @override
+  Future<TransportSampleReceiptDto>
+  crateApiTransportPatternLIdempotentTransportSampleApplyOnce({
+    required String idempotencyKey,
+    required String payload,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(idempotencyKey, serializer);
+          sse_encode_String(payload, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 31,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_receipt_dto,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternLIdempotentTransportSampleApplyOnceConstMeta,
+        argValues: [idempotencyKey, payload],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternLIdempotentTransportSampleApplyOnceConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_apply_once",
+        argNames: ["idempotencyKey", "payload"],
+      );
+
+  @override
+  Future<Uint8List> crateApiTransportPatternGBytesTransportSampleBigBytes({
+    required BigInt size,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_usize(size, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 32,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternGBytesTransportSampleBigBytesConstMeta,
+        argValues: [size],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternGBytesTransportSampleBigBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_big_bytes",
+        argNames: ["size"],
+      );
+
+  @override
+  Stream<Uint8List> crateApiTransportPatternGBytesTransportSampleChunkStream({
+    required BigInt totalSize,
+    required BigInt chunkSize,
+  }) {
+    final sink = RustStreamSink<Uint8List>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_StreamSink_list_prim_u_8_strict_Sse(sink, serializer);
+            sse_encode_usize(totalSize, serializer);
+            sse_encode_usize(chunkSize, serializer);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 33,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_transport_error,
+          ),
+          constMeta:
+              kCrateApiTransportPatternGBytesTransportSampleChunkStreamConstMeta,
+          argValues: [sink, totalSize, chunkSize],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternGBytesTransportSampleChunkStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_chunk_stream",
+        argNames: ["sink", "totalSize", "chunkSize"],
+      );
+
+  @override
+  double crateApiTransportPatternASyncTransportSampleClampPercent({
+    required double value,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_f_64(value, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_f_64,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternASyncTransportSampleClampPercentConstMeta,
+        argValues: [value],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternASyncTransportSampleClampPercentConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_clamp_percent",
+        argNames: ["value"],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternBAsyncTransportSampleCompute({
+    required String input,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(input, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 35,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternBAsyncTransportSampleComputeConstMeta,
+        argValues: [input],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternBAsyncTransportSampleComputeConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_compute",
+        argNames: ["input"],
+      );
+
+  @override
+  Future<bool>
+  crateApiTransportPatternNSemaphoreTransportSampleConfigureSemaphore({
+    required String name,
+    required int permits,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_u_32(permits, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 36,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternNSemaphoreTransportSampleConfigureSemaphoreConstMeta,
+        argValues: [name, permits],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternNSemaphoreTransportSampleConfigureSemaphoreConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_configure_semaphore",
+        argNames: ["name", "permits"],
+      );
+
+  @override
+  Future<TransportSampleFileReceiptDto>
+  crateApiTransportPatternSFileHandoffTransportSampleConsumeFile({
+    required String path,
+    String? expectedSha256,
+    required bool deleteAfter,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(path, serializer);
+          sse_encode_opt_String(expectedSha256, serializer);
+          sse_encode_bool(deleteAfter, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 37,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_file_receipt_dto,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternSFileHandoffTransportSampleConsumeFileConstMeta,
+        argValues: [path, expectedSha256, deleteAfter],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternSFileHandoffTransportSampleConsumeFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_consume_file",
+        argNames: ["path", "expectedSha256", "deleteAfter"],
+      );
+
+  @override
+  Future<int>
+  crateApiTransportPatternIEventBusTransportSampleEventBusClearSnapshot() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 38,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_32,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternIEventBusTransportSampleEventBusClearSnapshotConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternIEventBusTransportSampleEventBusClearSnapshotConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_event_bus_clear_snapshot",
+        argNames: [],
+      );
+
+  @override
+  Future<TransportSampleFanoutResult>
+  crateApiTransportPatternUStructuredTransportSampleFanout({
+    required List<String> inputs,
+    required BigInt perTaskMs,
+    required CancelHandle cancel,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_String(inputs, serializer);
+          sse_encode_u_64(perTaskMs, serializer);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+            cancel,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 39,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_fanout_result,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternUStructuredTransportSampleFanoutConstMeta,
+        argValues: [inputs, perTaskMs, cancel],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternUStructuredTransportSampleFanoutConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_fanout",
+        argNames: ["inputs", "perTaskMs", "cancel"],
+      );
+
+  @override
+  Future<PlatformInt64>
+  crateApiTransportPatternQMockTransportSampleFreshnessMs({
+    required PlatformInt64 createdAtMs,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(createdAtMs, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 40,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_i_64,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternQMockTransportSampleFreshnessMsConstMeta,
+        argValues: [createdAtMs],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternQMockTransportSampleFreshnessMsConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_freshness_ms",
+        argNames: ["createdAtMs"],
+      );
+
+  @override
+  Future<int>
+  crateApiTransportPatternLIdempotentTransportSampleIdempotencyCacheClear() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 41,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_32,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternLIdempotentTransportSampleIdempotencyCacheClearConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternLIdempotentTransportSampleIdempotencyCacheClearConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_idempotency_cache_clear",
+        argNames: [],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternRJsonTransportSampleJsonPassthrough({
+    required String payloadJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(payloadJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 42,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternRJsonTransportSampleJsonPassthroughConstMeta,
+        argValues: [payloadJson],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternRJsonTransportSampleJsonPassthroughConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_json_passthrough",
+        argNames: ["payloadJson"],
+      );
+
+  @override
+  Future<TransportSamplePage>
+  crateApiTransportPatternKPaginationTransportSampleListPage({
+    String? cursor,
+    required int limit,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_String(cursor, serializer);
+          sse_encode_u_32(limit, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 43,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_page,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternKPaginationTransportSampleListPageConstMeta,
+        argValues: [cursor, limit],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternKPaginationTransportSampleListPageConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_list_page",
+        argNames: ["cursor", "limit"],
+      );
+
+  @override
+  Future<TransportSampleRepl>
+  crateApiTransportPatternHDuplexTransportSampleOpenRepl() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 44,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternHDuplexTransportSampleOpenReplConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternHDuplexTransportSampleOpenReplConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_open_repl",
+        argNames: [],
+      );
+
+  @override
+  Future<TransportSampleSession>
+  crateApiTransportPatternFOpaqueTransportSampleOpenSession({
+    required PlatformInt64 initial,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(initial, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 45,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternFOpaqueTransportSampleOpenSessionConstMeta,
+        argValues: [initial],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternFOpaqueTransportSampleOpenSessionConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_open_session",
+        argNames: ["initial"],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternTPanicSafetyTransportSamplePanicDemo({
+    required bool shouldPanic,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_bool(shouldPanic, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 46,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternTPanicSafetyTransportSamplePanicDemoConstMeta,
+        argValues: [shouldPanic],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternTPanicSafetyTransportSamplePanicDemoConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_panic_demo",
+        argNames: ["shouldPanic"],
+      );
+
+  @override
+  Stream<ProgressDto>
+  crateApiTransportPatternEProgressTransportSampleProgressJob({
+    required int steps,
+    required BigInt stepDurationMs,
+    required CancelHandle cancel,
+  }) {
+    final sink = RustStreamSink<ProgressDto>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_StreamSink_progress_dto_Sse(sink, serializer);
+            sse_encode_u_32(steps, serializer);
+            sse_encode_u_64(stepDurationMs, serializer);
+            sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+              cancel,
+              serializer,
+            );
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 47,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_transport_error,
+          ),
+          constMeta:
+              kCrateApiTransportPatternEProgressTransportSampleProgressJobConstMeta,
+          argValues: [sink, steps, stepDurationMs, cancel],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternEProgressTransportSampleProgressJobConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_progress_job",
+        argNames: ["sink", "steps", "stepDurationMs", "cancel"],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternUStructuredTransportSampleRace({
+    required List<String> candidates,
+    required BigInt perTaskMs,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_String(candidates, serializer);
+          sse_encode_u_64(perTaskMs, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 48,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternUStructuredTransportSampleRaceConstMeta,
+        argValues: [candidates, perTaskMs],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternUStructuredTransportSampleRaceConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_race",
+        argNames: ["candidates", "perTaskMs"],
+      );
+
+  @override
+  Future<int>
+  crateApiTransportPatternNSemaphoreTransportSampleSemaphoreAvailable({
+    required String name,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 49,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_32,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternNSemaphoreTransportSampleSemaphoreAvailableConstMeta,
+        argValues: [name],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternNSemaphoreTransportSampleSemaphoreAvailableConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_semaphore_available",
+        argNames: ["name"],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternDCancelTransportSampleSlowJob({
+    required String input,
+    required int steps,
+    required BigInt stepMs,
+    required CancelHandle cancel,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(input, serializer);
+          sse_encode_u_32(steps, serializer);
+          sse_encode_u_64(stepMs, serializer);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+            cancel,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 50,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternDCancelTransportSampleSlowJobConstMeta,
+        argValues: [input, steps, stepMs, cancel],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternDCancelTransportSampleSlowJobConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_slow_job",
+        argNames: ["input", "steps", "stepMs", "cancel"],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternNSemaphoreTransportSampleThrottledOp({
+    required String name,
+    required BigInt acquireTimeoutMs,
+    required String input,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_u_64(acquireTimeoutMs, serializer);
+          sse_encode_String(input, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 51,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternNSemaphoreTransportSampleThrottledOpConstMeta,
+        argValues: [name, acquireTimeoutMs, input],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternNSemaphoreTransportSampleThrottledOpConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_throttled_op",
+        argNames: ["name", "acquireTimeoutMs", "input"],
+      );
+
+  @override
+  Stream<TransportSampleTickDto>
+  crateApiTransportPatternCStreamTransportSampleTicks({
+    required BigInt intervalMs,
+    required BigInt count,
+  }) {
+    final sink = RustStreamSink<TransportSampleTickDto>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_StreamSink_transport_sample_tick_dto_Sse(
+              sink,
+              serializer,
+            );
+            sse_encode_u_64(intervalMs, serializer);
+            sse_encode_u_64(count, serializer);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 52,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_transport_error,
+          ),
+          constMeta:
+              kCrateApiTransportPatternCStreamTransportSampleTicksConstMeta,
+          argValues: [sink, intervalMs, count],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternCStreamTransportSampleTicksConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_ticks",
+        argNames: ["sink", "intervalMs", "count"],
+      );
+
+  @override
+  Future<void> crateApiTransportPatternVRequestMetaTransportSampleValidateMeta({
+    required TransportRequestMeta meta,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_transport_request_meta(meta, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 53,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternVRequestMetaTransportSampleValidateMetaConstMeta,
+        argValues: [meta],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternVRequestMetaTransportSampleValidateMetaConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_validate_meta",
+        argNames: ["meta"],
+      );
+
+  @override
+  Future<bool> crateApiTransportPatternMCallbackTransportSampleWithConfirm({
+    required String prompt,
+    required BigInt timeoutMs,
+    required FutureOr<bool> Function(String) confirm,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(prompt, serializer);
+          sse_encode_u_64(timeoutMs, serializer);
+          sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(
+            confirm,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 54,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternMCallbackTransportSampleWithConfirmConstMeta,
+        argValues: [prompt, timeoutMs, confirm],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternMCallbackTransportSampleWithConfirmConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_with_confirm",
+        argNames: ["prompt", "timeoutMs", "confirm"],
+      );
+
+  @override
+  Future<List<String?>>
+  crateApiTransportPatternMCallbackTransportSampleWithKvProvider({
+    required List<String> keys,
+    required BigInt perKeyTimeoutMs,
+    required FutureOr<String?> Function(String) get_,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_String(keys, serializer);
+          sse_encode_u_64(perKeyTimeoutMs, serializer);
+          sse_encode_DartFn_Inputs_String_Output_opt_String_AnyhowException(
+            get_,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 55,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_opt_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternMCallbackTransportSampleWithKvProviderConstMeta,
+        argValues: [keys, perKeyTimeoutMs, get_],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternMCallbackTransportSampleWithKvProviderConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_with_kv_provider",
+        argNames: ["keys", "perKeyTimeoutMs", "get_"],
+      );
+
+  @override
+  Future<TransportSampleMetaReceiptDto>
+  crateApiTransportPatternVRequestMetaTransportSampleWithMeta({
+    required TransportRequestMeta meta,
+    required String payload,
+    required BigInt workMs,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_transport_request_meta(meta, serializer);
+          sse_encode_String(payload, serializer);
+          sse_encode_u_64(workMs, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 56,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_meta_receipt_dto,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternVRequestMetaTransportSampleWithMetaConstMeta,
+        argValues: [meta, payload, workMs],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternVRequestMetaTransportSampleWithMetaConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_with_meta",
+        argNames: ["meta", "payload", "workMs"],
+      );
+
+  @override
+  Future<String> crateApiTransportPatternBAsyncTransportSampleWithTimeout({
+    required String input,
+    required BigInt timeoutMs,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(input, serializer);
+          sse_encode_u_64(timeoutMs, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 57,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_transport_error,
+        ),
+        constMeta:
+            kCrateApiTransportPatternBAsyncTransportSampleWithTimeoutConstMeta,
+        argValues: [input, timeoutMs],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternBAsyncTransportSampleWithTimeoutConstMeta =>
+      const TaskConstMeta(
+        debugName: "transport_sample_with_timeout",
+        argNames: ["input", "timeoutMs"],
+      );
+
+  @override
+  Future<void> crateApiTransportPatternPSingletonTransportShutdown() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 58,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiTransportPatternPSingletonTransportShutdownConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiTransportPatternPSingletonTransportShutdownConstMeta =>
+      const TaskConstMeta(debugName: "transport_shutdown", argNames: []);
+
+  Future<void> Function(int, dynamic)
+  encode_DartFn_Inputs_String_Output_bool_AnyhowException(
+    FutureOr<bool> Function(String) raw,
+  ) {
+    return (callId, rawArg0) async {
+      final arg0 = dco_decode_String(rawArg0);
+
+      Box<bool>? rawOutput;
+      Box<AnyhowException>? rawError;
+      try {
+        rawOutput = Box(await raw(arg0));
+      } catch (e, s) {
+        rawError = Box(AnyhowException("$e\n\n$s"));
+      }
+
+      final serializer = SseSerializer(generalizedFrbRustBinding);
+      assert((rawOutput != null) ^ (rawError != null));
+      if (rawOutput != null) {
+        serializer.buffer.putUint8(0);
+        sse_encode_bool(rawOutput.value, serializer);
+      } else {
+        serializer.buffer.putUint8(1);
+        sse_encode_AnyhowException(rawError!.value, serializer);
+      }
+      final output = serializer.intoRaw();
+
+      generalizedFrbRustBinding.dartFnDeliverOutput(
+        callId: callId,
+        ptr: output.ptr,
+        rustVecLen: output.rustVecLen,
+        dataLen: output.dataLen,
+      );
+    };
+  }
+
+  Future<void> Function(int, dynamic)
+  encode_DartFn_Inputs_String_Output_opt_String_AnyhowException(
+    FutureOr<String?> Function(String) raw,
+  ) {
+    return (callId, rawArg0) async {
+      final arg0 = dco_decode_String(rawArg0);
+
+      Box<String?>? rawOutput;
+      Box<AnyhowException>? rawError;
+      try {
+        rawOutput = Box(await raw(arg0));
+      } catch (e, s) {
+        rawError = Box(AnyhowException("$e\n\n$s"));
+      }
+
+      final serializer = SseSerializer(generalizedFrbRustBinding);
+      assert((rawOutput != null) ^ (rawError != null));
+      if (rawOutput != null) {
+        serializer.buffer.putUint8(0);
+        sse_encode_opt_String(rawOutput.value, serializer);
+      } else {
+        serializer.buffer.putUint8(1);
+        sse_encode_AnyhowException(rawError!.value, serializer);
+      }
+      final output = serializer.intoRaw();
+
+      generalizedFrbRustBinding.dartFnDeliverOutput(
+        callId: callId,
+        ptr: output.ptr,
+        rustVecLen: output.rustVecLen,
+        dataLen: output.dataLen,
+      );
+    };
+  }
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_CancelHandle => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_CancelHandle => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_TransportSampleRepl => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_TransportSampleRepl => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_TransportSampleSession => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_TransportSampleSession => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -370,9 +2493,173 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CancelHandle
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CancelHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  TransportSampleRepl
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return TransportSampleReplImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  TransportSampleSession
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return TransportSampleSessionImpl.frbInternalDcoDecode(
+      raw as List<dynamic>,
+    );
+  }
+
+  @protected
+  CancelHandle
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CancelHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  TransportSampleRepl
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return TransportSampleReplImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  TransportSampleSession
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return TransportSampleSessionImpl.frbInternalDcoDecode(
+      raw as List<dynamic>,
+    );
+  }
+
+  @protected
+  FutureOr<bool> Function(String)
+  dco_decode_DartFn_Inputs_String_Output_bool_AnyhowException(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError('');
+  }
+
+  @protected
+  FutureOr<String?> Function(String)
+  dco_decode_DartFn_Inputs_String_Output_opt_String_AnyhowException(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError('');
+  }
+
+  @protected
+  Object dco_decode_DartOpaque(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return decodeDartOpaque(raw, generalizedFrbRustBinding);
+  }
+
+  @protected
+  CancelHandle
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CancelHandleImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  TransportSampleRepl
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return TransportSampleReplImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  TransportSampleSession
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return TransportSampleSessionImpl.frbInternalDcoDecode(
+      raw as List<dynamic>,
+    );
+  }
+
+  @protected
+  RustStreamSink<Uint8List> dco_decode_StreamSink_list_prim_u_8_strict_Sse(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  RustStreamSink<ProgressDto> dco_decode_StreamSink_progress_dto_Sse(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  RustStreamSink<TransportSampleEventDto>
+  dco_decode_StreamSink_transport_sample_event_dto_Sse(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  RustStreamSink<TransportSampleReplEvent>
+  dco_decode_StreamSink_transport_sample_repl_event_Sse(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  RustStreamSink<TransportSampleTickDto>
+  dco_decode_StreamSink_transport_sample_tick_dto_Sse(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
   String dco_decode_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as String;
+  }
+
+  @protected
+  TransportSampleClock dco_decode_TraitDef_TransportSampleClock(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
   }
 
   @protected
@@ -385,6 +2672,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RecoveryDto dco_decode_box_autoadd_recovery_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_recovery_dto(raw);
+  }
+
+  @protected
+  TransportRequestMeta dco_decode_box_autoadd_transport_request_meta(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_transport_request_meta(raw);
+  }
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_u_64(raw);
   }
 
   @protected
@@ -441,6 +2742,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PlatformInt64 dco_decode_isize(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeI64(raw);
+  }
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_String).toList();
@@ -459,9 +2766,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<String?> dco_decode_list_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_opt_String).toList();
+  }
+
+  @protected
   Float64List dco_decode_list_prim_f_64_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Float64List;
+  }
+
+  @protected
+  Int64List dco_decode_list_prim_i_64_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeInt64List(raw);
   }
 
   @protected
@@ -474,6 +2793,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<RecoveryDto> dco_decode_list_recovery_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_recovery_dto).toList();
+  }
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_bool(raw);
+  }
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
+  }
+
+  @protected
+  ProgressDto dco_decode_progress_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ProgressDto(
+      fraction: dco_decode_f_64(arr[0]),
+      stage: dco_decode_String(arr[1]),
+      message: dco_decode_opt_String(arr[2]),
+    );
   }
 
   @protected
@@ -506,9 +2856,172 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  TransportError dco_decode_transport_error(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return TransportError(
+      code: dco_decode_String(arr[0]),
+      message: dco_decode_String(arr[1]),
+      elapsedMs: dco_decode_u_64(arr[2]),
+    );
+  }
+
+  @protected
+  TransportRequestMeta dco_decode_transport_request_meta(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return TransportRequestMeta(
+      requestId: dco_decode_String(arr[0]),
+      idempotencyKey: dco_decode_opt_String(arr[1]),
+      budgetMs: dco_decode_opt_box_autoadd_u_64(arr[2]),
+      traceParent: dco_decode_opt_String(arr[3]),
+      locale: dco_decode_opt_String(arr[4]),
+      attempt: dco_decode_u_32(arr[5]),
+      source: dco_decode_opt_String(arr[6]),
+    );
+  }
+
+  @protected
+  TransportRuntimeInfo dco_decode_transport_runtime_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return TransportRuntimeInfo(
+      startedAtMs: dco_decode_i_64(arr[0]),
+      version: dco_decode_String(arr[1]),
+      running: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  TransportSampleEventDto dco_decode_transport_sample_event_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return TransportSampleEventDto(
+      topic: dco_decode_String(arr[0]),
+      payload: dco_decode_String(arr[1]),
+      timestampMs: dco_decode_i_64(arr[2]),
+    );
+  }
+
+  @protected
+  TransportSampleFanoutResult dco_decode_transport_sample_fanout_result(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return TransportSampleFanoutResult(
+      completed: dco_decode_u_32(arr[0]),
+      partial: dco_decode_list_String(arr[1]),
+    );
+  }
+
+  @protected
+  TransportSampleFileReceiptDto dco_decode_transport_sample_file_receipt_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return TransportSampleFileReceiptDto(
+      bytesRead: dco_decode_u_64(arr[0]),
+      sha256Hex: dco_decode_String(arr[1]),
+      verified: dco_decode_opt_box_autoadd_bool(arr[2]),
+      deleted: dco_decode_bool(arr[3]),
+    );
+  }
+
+  @protected
+  TransportSampleMetaReceiptDto dco_decode_transport_sample_meta_receipt_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return TransportSampleMetaReceiptDto(
+      requestId: dco_decode_String(arr[0]),
+      attempt: dco_decode_u_32(arr[1]),
+      elapsedMs: dco_decode_u_64(arr[2]),
+      budgetRemainingMs: dco_decode_opt_box_autoadd_u_64(arr[3]),
+      localeApplied: dco_decode_opt_String(arr[4]),
+      echoedPayload: dco_decode_String(arr[5]),
+    );
+  }
+
+  @protected
+  TransportSamplePage dco_decode_transport_sample_page(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return TransportSamplePage(
+      ids: dco_decode_list_String(arr[0]),
+      titles: dco_decode_list_String(arr[1]),
+      createdAtMs: dco_decode_list_prim_i_64_strict(arr[2]),
+      nextCursor: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  TransportSampleReceiptDto dco_decode_transport_sample_receipt_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return TransportSampleReceiptDto(
+      key: dco_decode_String(arr[0]),
+      result: dco_decode_String(arr[1]),
+      deduped: dco_decode_bool(arr[2]),
+    );
+  }
+
+  @protected
+  TransportSampleReplEvent dco_decode_transport_sample_repl_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return TransportSampleReplEvent(
+      echoOf: dco_decode_String(arr[0]),
+      seq: dco_decode_u_64(arr[1]),
+    );
+  }
+
+  @protected
+  TransportSampleTickDto dco_decode_transport_sample_tick_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return TransportSampleTickDto(
+      seq: dco_decode_u_64(arr[0]),
+      timestampMs: dco_decode_i_64(arr[1]),
+    );
+  }
+
+  @protected
   int dco_decode_u_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
   }
 
   @protected
@@ -524,6 +3037,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt dco_decode_usize(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
@@ -531,10 +3050,180 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CancelHandle
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return CancelHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  TransportSampleRepl
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return TransportSampleReplImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  TransportSampleSession
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return TransportSampleSessionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  CancelHandle
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return CancelHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  TransportSampleRepl
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return TransportSampleReplImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  TransportSampleSession
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return TransportSampleSessionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  Object sse_decode_DartOpaque(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_isize(deserializer);
+    return decodeDartOpaque(inner, generalizedFrbRustBinding);
+  }
+
+  @protected
+  CancelHandle
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return CancelHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  TransportSampleRepl
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return TransportSampleReplImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  TransportSampleSession
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return TransportSampleSessionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  RustStreamSink<Uint8List> sse_decode_StreamSink_list_prim_u_8_strict_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
+  RustStreamSink<ProgressDto> sse_decode_StreamSink_progress_dto_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
+  RustStreamSink<TransportSampleEventDto>
+  sse_decode_StreamSink_transport_sample_event_dto_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
+  RustStreamSink<TransportSampleReplEvent>
+  sse_decode_StreamSink_transport_sample_repl_event_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
+  RustStreamSink<TransportSampleTickDto>
+  sse_decode_StreamSink_transport_sample_tick_dto_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_bool(deserializer));
   }
 
   @protected
@@ -551,6 +3240,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_recovery_dto(deserializer));
+  }
+
+  @protected
+  TransportRequestMeta sse_decode_box_autoadd_transport_request_meta(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_transport_request_meta(deserializer));
+  }
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_64(deserializer));
   }
 
   @protected
@@ -606,6 +3309,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PlatformInt64 sse_decode_isize(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -644,10 +3353,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<String?> sse_decode_list_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String?>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_opt_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getFloat64List(len_);
+  }
+
+  @protected
+  Int64List sse_decode_list_prim_i_64_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getInt64List(len_);
   }
 
   @protected
@@ -667,6 +3395,52 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ans_.add(sse_decode_recovery_dto(deserializer));
     }
     return ans_;
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_bool(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  ProgressDto sse_decode_progress_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_fraction = sse_decode_f_64(deserializer);
+    var var_stage = sse_decode_String(deserializer);
+    var var_message = sse_decode_opt_String(deserializer);
+    return ProgressDto(
+      fraction: var_fraction,
+      stage: var_stage,
+      message: var_message,
+    );
   }
 
   @protected
@@ -704,9 +3478,184 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  TransportError sse_decode_transport_error(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_code = sse_decode_String(deserializer);
+    var var_message = sse_decode_String(deserializer);
+    var var_elapsedMs = sse_decode_u_64(deserializer);
+    return TransportError(
+      code: var_code,
+      message: var_message,
+      elapsedMs: var_elapsedMs,
+    );
+  }
+
+  @protected
+  TransportRequestMeta sse_decode_transport_request_meta(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_requestId = sse_decode_String(deserializer);
+    var var_idempotencyKey = sse_decode_opt_String(deserializer);
+    var var_budgetMs = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_traceParent = sse_decode_opt_String(deserializer);
+    var var_locale = sse_decode_opt_String(deserializer);
+    var var_attempt = sse_decode_u_32(deserializer);
+    var var_source = sse_decode_opt_String(deserializer);
+    return TransportRequestMeta(
+      requestId: var_requestId,
+      idempotencyKey: var_idempotencyKey,
+      budgetMs: var_budgetMs,
+      traceParent: var_traceParent,
+      locale: var_locale,
+      attempt: var_attempt,
+      source: var_source,
+    );
+  }
+
+  @protected
+  TransportRuntimeInfo sse_decode_transport_runtime_info(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_startedAtMs = sse_decode_i_64(deserializer);
+    var var_version = sse_decode_String(deserializer);
+    var var_running = sse_decode_bool(deserializer);
+    return TransportRuntimeInfo(
+      startedAtMs: var_startedAtMs,
+      version: var_version,
+      running: var_running,
+    );
+  }
+
+  @protected
+  TransportSampleEventDto sse_decode_transport_sample_event_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_topic = sse_decode_String(deserializer);
+    var var_payload = sse_decode_String(deserializer);
+    var var_timestampMs = sse_decode_i_64(deserializer);
+    return TransportSampleEventDto(
+      topic: var_topic,
+      payload: var_payload,
+      timestampMs: var_timestampMs,
+    );
+  }
+
+  @protected
+  TransportSampleFanoutResult sse_decode_transport_sample_fanout_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_completed = sse_decode_u_32(deserializer);
+    var var_partial = sse_decode_list_String(deserializer);
+    return TransportSampleFanoutResult(
+      completed: var_completed,
+      partial: var_partial,
+    );
+  }
+
+  @protected
+  TransportSampleFileReceiptDto sse_decode_transport_sample_file_receipt_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_bytesRead = sse_decode_u_64(deserializer);
+    var var_sha256Hex = sse_decode_String(deserializer);
+    var var_verified = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_deleted = sse_decode_bool(deserializer);
+    return TransportSampleFileReceiptDto(
+      bytesRead: var_bytesRead,
+      sha256Hex: var_sha256Hex,
+      verified: var_verified,
+      deleted: var_deleted,
+    );
+  }
+
+  @protected
+  TransportSampleMetaReceiptDto sse_decode_transport_sample_meta_receipt_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_requestId = sse_decode_String(deserializer);
+    var var_attempt = sse_decode_u_32(deserializer);
+    var var_elapsedMs = sse_decode_u_64(deserializer);
+    var var_budgetRemainingMs = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_localeApplied = sse_decode_opt_String(deserializer);
+    var var_echoedPayload = sse_decode_String(deserializer);
+    return TransportSampleMetaReceiptDto(
+      requestId: var_requestId,
+      attempt: var_attempt,
+      elapsedMs: var_elapsedMs,
+      budgetRemainingMs: var_budgetRemainingMs,
+      localeApplied: var_localeApplied,
+      echoedPayload: var_echoedPayload,
+    );
+  }
+
+  @protected
+  TransportSamplePage sse_decode_transport_sample_page(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_ids = sse_decode_list_String(deserializer);
+    var var_titles = sse_decode_list_String(deserializer);
+    var var_createdAtMs = sse_decode_list_prim_i_64_strict(deserializer);
+    var var_nextCursor = sse_decode_opt_String(deserializer);
+    return TransportSamplePage(
+      ids: var_ids,
+      titles: var_titles,
+      createdAtMs: var_createdAtMs,
+      nextCursor: var_nextCursor,
+    );
+  }
+
+  @protected
+  TransportSampleReceiptDto sse_decode_transport_sample_receipt_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_key = sse_decode_String(deserializer);
+    var var_result = sse_decode_String(deserializer);
+    var var_deduped = sse_decode_bool(deserializer);
+    return TransportSampleReceiptDto(
+      key: var_key,
+      result: var_result,
+      deduped: var_deduped,
+    );
+  }
+
+  @protected
+  TransportSampleReplEvent sse_decode_transport_sample_repl_event(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_echoOf = sse_decode_String(deserializer);
+    var var_seq = sse_decode_u_64(deserializer);
+    return TransportSampleReplEvent(echoOf: var_echoOf, seq: var_seq);
+  }
+
+  @protected
+  TransportSampleTickDto sse_decode_transport_sample_tick_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_seq = sse_decode_u_64(deserializer);
+    var var_timestampMs = sse_decode_i_64(deserializer);
+    return TransportSampleTickDto(seq: var_seq, timestampMs: var_timestampMs);
+  }
+
+  @protected
   int sse_decode_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint32();
+  }
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
   }
 
   @protected
@@ -721,15 +3670,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
+  BigInt sse_decode_usize(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
+    return deserializer.buffer.getBigUint64();
   }
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
+  int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
+    return deserializer.buffer.getInt32();
   }
 
   @protected
@@ -742,9 +3691,262 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    CancelHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as CancelHandleImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    TransportSampleRepl self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as TransportSampleReplImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    TransportSampleSession self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as TransportSampleSessionImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    CancelHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as CancelHandleImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    TransportSampleRepl self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as TransportSampleReplImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    TransportSampleSession self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as TransportSampleSessionImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(
+    FutureOr<bool> Function(String) self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_DartOpaque(
+      encode_DartFn_Inputs_String_Output_bool_AnyhowException(self),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_DartFn_Inputs_String_Output_opt_String_AnyhowException(
+    FutureOr<String?> Function(String) self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_DartOpaque(
+      encode_DartFn_Inputs_String_Output_opt_String_AnyhowException(self),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_DartOpaque(Object self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_isize(
+      PlatformPointerUtil.ptrToPlatformInt64(
+        encodeDartOpaque(
+          self,
+          portManager.dartHandlerPort,
+          generalizedFrbRustBinding,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    CancelHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as CancelHandleImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    TransportSampleRepl self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as TransportSampleReplImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    TransportSampleSession self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as TransportSampleSessionImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_list_prim_u_8_strict_Sse(
+    RustStreamSink<Uint8List> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_progress_dto_Sse(
+    RustStreamSink<ProgressDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_progress_dto,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_transport_sample_event_dto_Sse(
+    RustStreamSink<TransportSampleEventDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_event_dto,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_transport_sample_repl_event_Sse(
+    RustStreamSink<TransportSampleReplEvent> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_repl_event,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_transport_sample_tick_dto_Sse(
+    RustStreamSink<TransportSampleTickDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_transport_sample_tick_dto,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self, serializer);
   }
 
   @protected
@@ -763,6 +3965,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_recovery_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_transport_request_meta(
+    TransportRequestMeta self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_transport_request_meta(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self, serializer);
   }
 
   @protected
@@ -807,6 +4024,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
@@ -840,6 +4063,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_opt_String(
+    List<String?> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_opt_String(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_f_64_strict(
     Float64List self,
     SseSerializer serializer,
@@ -847,6 +4082,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putFloat64List(self);
+  }
+
+  @protected
+  void sse_encode_list_prim_i_64_strict(
+    Int64List self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putInt64List(self);
   }
 
   @protected
@@ -872,6 +4117,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_bool(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_progress_dto(ProgressDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.fraction, serializer);
+    sse_encode_String(self.stage, serializer);
+    sse_encode_opt_String(self.message, serializer);
+  }
+
+  @protected
   void sse_encode_record_recovery_outcome_dto(
     RecordRecoveryOutcomeDto self,
     SseSerializer serializer,
@@ -894,9 +4177,142 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_transport_error(
+    TransportError self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.code, serializer);
+    sse_encode_String(self.message, serializer);
+    sse_encode_u_64(self.elapsedMs, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_request_meta(
+    TransportRequestMeta self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.requestId, serializer);
+    sse_encode_opt_String(self.idempotencyKey, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.budgetMs, serializer);
+    sse_encode_opt_String(self.traceParent, serializer);
+    sse_encode_opt_String(self.locale, serializer);
+    sse_encode_u_32(self.attempt, serializer);
+    sse_encode_opt_String(self.source, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_runtime_info(
+    TransportRuntimeInfo self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self.startedAtMs, serializer);
+    sse_encode_String(self.version, serializer);
+    sse_encode_bool(self.running, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_event_dto(
+    TransportSampleEventDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.topic, serializer);
+    sse_encode_String(self.payload, serializer);
+    sse_encode_i_64(self.timestampMs, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_fanout_result(
+    TransportSampleFanoutResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.completed, serializer);
+    sse_encode_list_String(self.partial, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_file_receipt_dto(
+    TransportSampleFileReceiptDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.bytesRead, serializer);
+    sse_encode_String(self.sha256Hex, serializer);
+    sse_encode_opt_box_autoadd_bool(self.verified, serializer);
+    sse_encode_bool(self.deleted, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_meta_receipt_dto(
+    TransportSampleMetaReceiptDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.requestId, serializer);
+    sse_encode_u_32(self.attempt, serializer);
+    sse_encode_u_64(self.elapsedMs, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.budgetRemainingMs, serializer);
+    sse_encode_opt_String(self.localeApplied, serializer);
+    sse_encode_String(self.echoedPayload, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_page(
+    TransportSamplePage self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_String(self.ids, serializer);
+    sse_encode_list_String(self.titles, serializer);
+    sse_encode_list_prim_i_64_strict(self.createdAtMs, serializer);
+    sse_encode_opt_String(self.nextCursor, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_receipt_dto(
+    TransportSampleReceiptDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.key, serializer);
+    sse_encode_String(self.result, serializer);
+    sse_encode_bool(self.deduped, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_repl_event(
+    TransportSampleReplEvent self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.echoOf, serializer);
+    sse_encode_u_64(self.seq, serializer);
+  }
+
+  @protected
+  void sse_encode_transport_sample_tick_dto(
+    TransportSampleTickDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.seq, serializer);
+    sse_encode_i_64(self.timestampMs, serializer);
+  }
+
+  @protected
   void sse_encode_u_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint32(self);
+  }
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
   }
 
   @protected
@@ -911,14 +4327,130 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
   }
+}
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
-  }
+@sealed
+class CancelHandleImpl extends RustOpaque implements CancelHandle {
+  // Not to be used by end users
+  CancelHandleImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  CancelHandleImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_CancelHandle,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_CancelHandle,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_CancelHandlePtr,
+  );
+
+  /// Dart 侧调用。幂等。
+  Future<void> cancel() => RustLib.instance.api
+      .crateApiTransportCommonCancelHandleCancel(that: this);
+
+  bool isCancelled() => RustLib.instance.api
+      .crateApiTransportCommonCancelHandleIsCancelled(that: this);
+}
+
+@sealed
+class TransportSampleReplImpl extends RustOpaque
+    implements TransportSampleRepl {
+  // Not to be used by end users
+  TransportSampleReplImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  TransportSampleReplImpl.frbInternalSseDecode(
+    BigInt ptr,
+    int externalSizeOnNative,
+  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount: RustLib
+        .instance
+        .api
+        .rust_arc_increment_strong_count_TransportSampleRepl,
+    rustArcDecrementStrongCount: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_TransportSampleRepl,
+    rustArcDecrementStrongCountPtr: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_TransportSampleReplPtr,
+  );
+
+  /// 第一步: Dart 订阅事件流, 把 sink 注册到句柄上。重复 bind 返回 `conflict`。
+  Stream<TransportSampleReplEvent> bindEvents() => RustLib.instance.api
+      .crateApiTransportPatternHDuplexTransportSampleReplBindEvents(that: this);
+
+  /// 显式关闭。后续 `submit` 返回 `conflict`; 幂等。
+  Future<void> close() => RustLib.instance.api
+      .crateApiTransportPatternHDuplexTransportSampleReplClose(that: this);
+
+  /// 第二步: Dart 发命令; Rust 回 echo 事件。
+  /// 未 bind 即 submit → `conflict`; sink 已关闭 → `conflict`。
+  Future<void> submit({required String command}) => RustLib.instance.api
+      .crateApiTransportPatternHDuplexTransportSampleReplSubmit(
+        that: this,
+        command: command,
+      );
+}
+
+@sealed
+class TransportSampleSessionImpl extends RustOpaque
+    implements TransportSampleSession {
+  // Not to be used by end users
+  TransportSampleSessionImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  TransportSampleSessionImpl.frbInternalSseDecode(
+    BigInt ptr,
+    int externalSizeOnNative,
+  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount: RustLib
+        .instance
+        .api
+        .rust_arc_increment_strong_count_TransportSampleSession,
+    rustArcDecrementStrongCount: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_TransportSampleSession,
+    rustArcDecrementStrongCountPtr: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_TransportSampleSessionPtr,
+  );
+
+  /// 显式释放业务资源 (此处只是设标志)。Dart 侧 `RustOpaque` Drop 时也会回收内存。
+  Future<void> dispose() => RustLib.instance.api
+      .crateApiTransportPatternFOpaqueTransportSampleSessionDispose(that: this);
+
+  Future<void> increment({required PlatformInt64 by}) => RustLib.instance.api
+      .crateApiTransportPatternFOpaqueTransportSampleSessionIncrement(
+        that: this,
+        by: by,
+      );
+
+  Future<PlatformInt64> snapshot() => RustLib.instance.api
+      .crateApiTransportPatternFOpaqueTransportSampleSessionSnapshot(
+        that: this,
+      );
 }

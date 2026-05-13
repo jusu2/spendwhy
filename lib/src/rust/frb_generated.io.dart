@@ -6,6 +6,27 @@
 import 'api/dto.dart';
 import 'api/fade.dart';
 import 'api/recovery.dart';
+import 'api/transport/common.dart';
+import 'api/transport/pattern_a_sync.dart';
+import 'api/transport/pattern_b_async.dart';
+import 'api/transport/pattern_c_stream.dart';
+import 'api/transport/pattern_d_cancel.dart';
+import 'api/transport/pattern_e_progress.dart';
+import 'api/transport/pattern_f_opaque.dart';
+import 'api/transport/pattern_g_bytes.dart';
+import 'api/transport/pattern_h_duplex.dart';
+import 'api/transport/pattern_i_event_bus.dart';
+import 'api/transport/pattern_k_pagination.dart';
+import 'api/transport/pattern_l_idempotent.dart';
+import 'api/transport/pattern_m_callback.dart';
+import 'api/transport/pattern_n_semaphore.dart';
+import 'api/transport/pattern_p_singleton.dart';
+import 'api/transport/pattern_q_mock.dart';
+import 'api/transport/pattern_r_json.dart';
+import 'api/transport/pattern_s_file_handoff.dart';
+import 'api/transport/pattern_t_panic_safety.dart';
+import 'api/transport/pattern_u_structured.dart';
+import 'api/transport/pattern_v_request_meta.dart';
 import 'api/view.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -21,17 +42,135 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     required super.portManager,
   });
 
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CancelHandlePtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandlePtr;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_TransportSampleReplPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleReplPtr;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_TransportSampleSessionPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSessionPtr;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
 
   @protected
+  CancelHandle
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleRepl
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleSession
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    dynamic raw,
+  );
+
+  @protected
+  CancelHandle
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleRepl
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleSession
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    dynamic raw,
+  );
+
+  @protected
+  FutureOr<bool> Function(String)
+  dco_decode_DartFn_Inputs_String_Output_bool_AnyhowException(dynamic raw);
+
+  @protected
+  FutureOr<String?> Function(String)
+  dco_decode_DartFn_Inputs_String_Output_opt_String_AnyhowException(
+    dynamic raw,
+  );
+
+  @protected
+  Object dco_decode_DartOpaque(dynamic raw);
+
+  @protected
+  CancelHandle
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleRepl
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleSession
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<Uint8List> dco_decode_StreamSink_list_prim_u_8_strict_Sse(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<ProgressDto> dco_decode_StreamSink_progress_dto_Sse(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<TransportSampleEventDto>
+  dco_decode_StreamSink_transport_sample_event_dto_Sse(dynamic raw);
+
+  @protected
+  RustStreamSink<TransportSampleReplEvent>
+  dco_decode_StreamSink_transport_sample_repl_event_Sse(dynamic raw);
+
+  @protected
+  RustStreamSink<TransportSampleTickDto>
+  dco_decode_StreamSink_transport_sample_tick_dto_Sse(dynamic raw);
+
+  @protected
   String dco_decode_String(dynamic raw);
+
+  @protected
+  TransportSampleClock dco_decode_TraitDef_TransportSampleClock(dynamic raw);
+
+  @protected
+  bool dco_decode_bool(dynamic raw);
+
+  @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
   FragmentDto dco_decode_box_autoadd_fragment_dto(dynamic raw);
 
   @protected
   RecoveryDto dco_decode_box_autoadd_recovery_dto(dynamic raw);
+
+  @protected
+  TransportRequestMeta dco_decode_box_autoadd_transport_request_meta(
+    dynamic raw,
+  );
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -49,6 +188,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 dco_decode_i_64(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_isize(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
@@ -58,7 +200,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<FragmentViewDto> dco_decode_list_fragment_view_dto(dynamic raw);
 
   @protected
+  List<String?> dco_decode_list_opt_String(dynamic raw);
+
+  @protected
   Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
+
+  @protected
+  Int64List dco_decode_list_prim_i_64_strict(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -67,13 +215,69 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RecoveryDto> dco_decode_list_recovery_dto(dynamic raw);
 
   @protected
+  String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  ProgressDto dco_decode_progress_dto(dynamic raw);
+
+  @protected
   RecordRecoveryOutcomeDto dco_decode_record_recovery_outcome_dto(dynamic raw);
 
   @protected
   RecoveryDto dco_decode_recovery_dto(dynamic raw);
 
   @protected
+  TransportError dco_decode_transport_error(dynamic raw);
+
+  @protected
+  TransportRequestMeta dco_decode_transport_request_meta(dynamic raw);
+
+  @protected
+  TransportRuntimeInfo dco_decode_transport_runtime_info(dynamic raw);
+
+  @protected
+  TransportSampleEventDto dco_decode_transport_sample_event_dto(dynamic raw);
+
+  @protected
+  TransportSampleFanoutResult dco_decode_transport_sample_fanout_result(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleFileReceiptDto dco_decode_transport_sample_file_receipt_dto(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleMetaReceiptDto dco_decode_transport_sample_meta_receipt_dto(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSamplePage dco_decode_transport_sample_page(dynamic raw);
+
+  @protected
+  TransportSampleReceiptDto dco_decode_transport_sample_receipt_dto(
+    dynamic raw,
+  );
+
+  @protected
+  TransportSampleReplEvent dco_decode_transport_sample_repl_event(dynamic raw);
+
+  @protected
+  TransportSampleTickDto dco_decode_transport_sample_tick_dto(dynamic raw);
+
+  @protected
   int dco_decode_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -82,16 +286,118 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  BigInt dco_decode_usize(dynamic raw);
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
+  CancelHandle
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleRepl
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleSession
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CancelHandle
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleRepl
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleSession
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Object sse_decode_DartOpaque(SseDeserializer deserializer);
+
+  @protected
+  CancelHandle
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleRepl
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleSession
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<Uint8List> sse_decode_StreamSink_list_prim_u_8_strict_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<ProgressDto> sse_decode_StreamSink_progress_dto_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<TransportSampleEventDto>
+  sse_decode_StreamSink_transport_sample_event_dto_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<TransportSampleReplEvent>
+  sse_decode_StreamSink_transport_sample_repl_event_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<TransportSampleTickDto>
+  sse_decode_StreamSink_transport_sample_tick_dto_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
   FragmentDto sse_decode_box_autoadd_fragment_dto(SseDeserializer deserializer);
 
   @protected
   RecoveryDto sse_decode_box_autoadd_recovery_dto(SseDeserializer deserializer);
+
+  @protected
+  TransportRequestMeta sse_decode_box_autoadd_transport_request_meta(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -109,6 +415,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
@@ -120,13 +429,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<String?> sse_decode_list_opt_String(SseDeserializer deserializer);
+
+  @protected
   Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
+
+  @protected
+  Int64List sse_decode_list_prim_i_64_strict(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
   List<RecoveryDto> sse_decode_list_recovery_dto(SseDeserializer deserializer);
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  ProgressDto sse_decode_progress_dto(SseDeserializer deserializer);
 
   @protected
   RecordRecoveryOutcomeDto sse_decode_record_recovery_outcome_dto(
@@ -137,7 +464,63 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecoveryDto sse_decode_recovery_dto(SseDeserializer deserializer);
 
   @protected
+  TransportError sse_decode_transport_error(SseDeserializer deserializer);
+
+  @protected
+  TransportRequestMeta sse_decode_transport_request_meta(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportRuntimeInfo sse_decode_transport_runtime_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleEventDto sse_decode_transport_sample_event_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleFanoutResult sse_decode_transport_sample_fanout_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleFileReceiptDto sse_decode_transport_sample_file_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleMetaReceiptDto sse_decode_transport_sample_meta_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSamplePage sse_decode_transport_sample_page(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleReceiptDto sse_decode_transport_sample_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleReplEvent sse_decode_transport_sample_repl_event(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TransportSampleTickDto sse_decode_transport_sample_tick_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -146,10 +529,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+  BigInt sse_decode_usize(SseDeserializer deserializer);
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   void sse_encode_AnyhowException(
@@ -158,7 +541,121 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    CancelHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    TransportSampleRepl self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    TransportSampleSession self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    CancelHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    TransportSampleRepl self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    TransportSampleSession self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(
+    FutureOr<bool> Function(String) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_DartFn_Inputs_String_Output_opt_String_AnyhowException(
+    FutureOr<String?> Function(String) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_DartOpaque(Object self, SseSerializer serializer);
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    CancelHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    TransportSampleRepl self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    TransportSampleSession self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_list_prim_u_8_strict_Sse(
+    RustStreamSink<Uint8List> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_progress_dto_Sse(
+    RustStreamSink<ProgressDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_transport_sample_event_dto_Sse(
+    RustStreamSink<TransportSampleEventDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_transport_sample_repl_event_Sse(
+    RustStreamSink<TransportSampleReplEvent> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_transport_sample_tick_dto_Sse(
+    RustStreamSink<TransportSampleTickDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_fragment_dto(
@@ -171,6 +668,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     RecoveryDto self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_box_autoadd_transport_request_meta(
+    TransportRequestMeta self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -191,6 +697,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
   @protected
+  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
@@ -206,8 +715,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_opt_String(List<String?> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_f_64_strict(
     Float64List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_prim_i_64_strict(
+    Int64List self,
     SseSerializer serializer,
   );
 
@@ -224,6 +742,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_progress_dto(ProgressDto self, SseSerializer serializer);
+
+  @protected
   void sse_encode_record_recovery_outcome_dto(
     RecordRecoveryOutcomeDto self,
     SseSerializer serializer,
@@ -233,7 +763,76 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_recovery_dto(RecoveryDto self, SseSerializer serializer);
 
   @protected
+  void sse_encode_transport_error(
+    TransportError self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_request_meta(
+    TransportRequestMeta self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_runtime_info(
+    TransportRuntimeInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_event_dto(
+    TransportSampleEventDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_fanout_result(
+    TransportSampleFanoutResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_file_receipt_dto(
+    TransportSampleFileReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_meta_receipt_dto(
+    TransportSampleMetaReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_page(
+    TransportSamplePage self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_receipt_dto(
+    TransportSampleReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_repl_event(
+    TransportSampleReplEvent self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_transport_sample_tick_dto(
+    TransportSampleTickDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
@@ -242,10 +841,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_unit(void self, SseSerializer serializer);
 
   @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
 
   @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
+  void sse_encode_i_32(int self, SseSerializer serializer);
 }
 
 // Section: wire_class
@@ -261,4 +860,106 @@ class RustLibWire implements BaseWire {
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandlePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fragments_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandlePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandlePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fragments_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandlePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleReplPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fragments_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleReplPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleReplPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fragments_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleReplPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSessionPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fragments_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSessionPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSessionPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fragments_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSession =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleSessionPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 }
