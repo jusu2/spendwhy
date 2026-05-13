@@ -33,12 +33,19 @@ class HomePage extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: _Header(today: today, fragments: fragments, score: score, recoveryCount: recoveries.length),
+                child: _Header(
+                  today: today,
+                  fragments: fragments,
+                  score: score,
+                  recoveryCount: recoveries.length,
+                ),
               ),
               if (fragments.isEmpty)
                 const SliverToBoxAdapter(child: _Empty())
               else ...[
-                SliverToBoxAdapter(child: _SectionTitle(text: S.homeRecentFragments)),
+                SliverToBoxAdapter(
+                  child: _SectionTitle(text: S.homeRecentFragments),
+                ),
                 SliverList.builder(
                   itemCount: fragments.length,
                   itemBuilder: (context, index) {
@@ -49,7 +56,9 @@ class HomePage extends StatelessWidget {
               ],
               if (recoveries.isNotEmpty) ...[
                 const SliverToBoxAdapter(child: SizedBox(height: 40)),
-                SliverToBoxAdapter(child: _SectionTitle(text: S.homeRecentRecoveries)),
+                SliverToBoxAdapter(
+                  child: _SectionTitle(text: S.homeRecentRecoveries),
+                ),
                 SliverList.builder(
                   itemCount: recoveries.length.clamp(0, 3),
                   itemBuilder: (context, index) {
@@ -96,9 +105,7 @@ class HomePage extends StatelessWidget {
                 UnderlineButton(
                   label: S.homeQuickRecord,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const RecordPage(),
-                    ),
+                    MaterialPageRoute<void>(builder: (_) => const RecordPage()),
                   ),
                 ),
               ],
@@ -219,16 +226,18 @@ class _RecoveryRow extends StatelessWidget {
                 width: 56,
                 child: Text(
                   date,
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(letterSpacing: 1.6),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    letterSpacing: 1.6,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '— $description',
-                  style: theme.textTheme.bodyLarge
-                      ?.copyWith(fontStyle: FontStyle.italic),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ),
             ],

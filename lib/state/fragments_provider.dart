@@ -13,8 +13,8 @@ import '../services/rust_backend.dart';
 /// - 写后局部更新，不再每次 reload 全表
 class FragmentsProvider extends ChangeNotifier {
   FragmentsProvider({AppDatabase? db, Uuid? uuid})
-      : _db = db ?? AppDatabase.instance,
-        _uuid = uuid ?? const Uuid();
+    : _db = db ?? AppDatabase.instance,
+      _uuid = uuid ?? const Uuid();
 
   final AppDatabase _db;
   final Uuid _uuid;
@@ -76,7 +76,8 @@ class FragmentsProvider extends ChangeNotifier {
   Future<void> updateFragment(Fragment f) async {
     await _db.updateFragment(f);
     final updated = [
-      for (final x in _fragments) if (x.id == f.id) f else x,
+      for (final x in _fragments)
+        if (x.id == f.id) f else x,
     ];
     _applyView(updated, _recoveries);
     notifyListeners();
@@ -120,7 +121,8 @@ class FragmentsProvider extends ChangeNotifier {
       final advanced = old.copyWith(stage: FragmentStage.recovery);
       await _db.updateFragment(advanced);
       fragments = [
-        for (final x in fragments) if (x.id == fid) advanced else x,
+        for (final x in fragments)
+          if (x.id == fid) advanced else x,
       ];
     }
 

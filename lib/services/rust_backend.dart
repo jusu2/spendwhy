@@ -39,26 +39,26 @@ class RustBackend {
   // === DTO 转换：领域 -> FRB DTO ============================================
 
   static dto.FragmentDto toFragmentDto(Fragment f) => dto.FragmentDto(
-        schemaVersion: expectedFragmentSchema,
-        id: f.id,
-        createdAtMs: PlatformInt64Util.from(
-          f.createdAt.toUtc().millisecondsSinceEpoch,
-        ),
-        intensity: f.intensity.value,
-        fadePeriodDays: f.fadePeriod.days,
-        stage: f.stage.code,
-      );
+    schemaVersion: expectedFragmentSchema,
+    id: f.id,
+    createdAtMs: PlatformInt64Util.from(
+      f.createdAt.toUtc().millisecondsSinceEpoch,
+    ),
+    intensity: f.intensity.value,
+    fadePeriodDays: f.fadePeriod.days,
+    stage: f.stage.code,
+  );
 
   static dto.RecoveryDto toRecoveryDto(Recovery r) => dto.RecoveryDto(
-        schemaVersion: expectedRecoverySchema,
-        id: r.id,
-        createdAtMs: PlatformInt64Util.from(
-          r.createdAt.toUtc().millisecondsSinceEpoch,
-        ),
-        intensity: r.intensity,
-        description: r.description,
-        relatedFragmentIds: r.relatedFragmentIds,
-      );
+    schemaVersion: expectedRecoverySchema,
+    id: r.id,
+    createdAtMs: PlatformInt64Util.from(
+      r.createdAt.toUtc().millisecondsSinceEpoch,
+    ),
+    intensity: r.intensity,
+    description: r.description,
+    relatedFragmentIds: r.relatedFragmentIds,
+  );
 
   // === Use cases ============================================================
 
@@ -112,8 +112,9 @@ class RustBackend {
   }) {
     return recovery_api.recordRecovery(
       recovery: toRecoveryDto(recovery),
-      relatedFragments:
-          relatedFragments.map(toFragmentDto).toList(growable: false),
+      relatedFragments: relatedFragments
+          .map(toFragmentDto)
+          .toList(growable: false),
     );
   }
 }
