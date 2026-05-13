@@ -31,6 +31,20 @@ class FragmentsProvider extends ChangeNotifier {
   double _growthScore = 0;
   bool _loading = false;
   Object? _lastError;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  /// 仅在未释放时通知监听者，避免异步任务在 widget 销毁后触发
+  /// `setState() called after dispose()` 异常。
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
 
   List<Fragment> get fragments => _fragments;
   List<Recovery> get recoveries => _recoveries;
@@ -42,17 +56,22 @@ class FragmentsProvider extends ChangeNotifier {
   Future<void> load() async {
     _loading = true;
     _lastError = null;
-    notifyListeners();
+    _safeNotify();
     try {
-      final fragments = await _db.listFragments();
-      final recoveries = await _db.listRecoveries();
+      // 两个表互不依赖，并发读减少 I/O 阻塞。
+      final results = await Future.wait([
+        _db.listFragments(),
+        _db.listRecoveries(),
+      ]);
+      final fragments = results[0] as List<Fragment>;
+      final recoveries = results[1] as List<Recovery>;
       _applyView(fragments, recoveries);
     } catch (e, st) {
       _lastError = e;
       debugPrint('[FragmentsProvider.load] failed: $e\n$st');
     } finally {
       _loading = false;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -64,9 +83,11 @@ class FragmentsProvider extends ChangeNotifier {
     ShareVisibility visibility = ShareVisibility.private,
     List<String> imagePaths = const [],
   }) async {
+    // 单次写路径只读一次时钟，让 createdAt 与 fade_level 计算共享同一时间点。
+    final now = _now();
     final f = Fragment(
       id: _uuid.v4(),
-      createdAt: _now(),
+      createdAt: now,
       content: content,
       tags: tags,
       intensity: intensity,
@@ -75,8 +96,8 @@ class FragmentsProvider extends ChangeNotifier {
       imagePaths: imagePaths,
     );
     await _db.insertFragment(f);
-    _applyView([f, ..._fragments], _recoveries);
-    notifyListeners();
+    _applyView([f, ..._fragments], _recoveries, now: now);
+    _safeNotify();
     return f;
   }
 
@@ -87,14 +108,14 @@ class FragmentsProvider extends ChangeNotifier {
         if (x.id == f.id) f else x,
     ];
     _applyView(updated, _recoveries);
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> deleteFragment(String id) async {
     await _db.deleteFragment(id);
     final updated = _fragments.where((f) => f.id != id).toList();
     _applyView(updated, _recoveries);
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<Recovery> addRecovery({
@@ -102,17 +123,19 @@ class FragmentsProvider extends ChangeNotifier {
     required int intensity,
     List<String> relatedFragmentIds = const [],
   }) async {
+    final now = _now();
     final recovery = Recovery(
       id: _uuid.v4(),
-      createdAt: _now(),
+      createdAt: now,
       description: description,
       intensity: intensity,
       relatedFragmentIds: relatedFragmentIds,
     );
 
+    // 用 id->Fragment 索引一次，避免对每个 id 做 O(N) 扫描。
+    final byId = {for (final f in _fragments) f.id: f};
     final relatedFragments = <Fragment>[
-      for (final id in relatedFragmentIds)
-        ..._fragments.where((f) => f.id == id),
+      for (final id in relatedFragmentIds) ?byId[id],
     ];
 
     final outcome = RustBackend.recordRecovery(
@@ -120,29 +143,31 @@ class FragmentsProvider extends ChangeNotifier {
       relatedFragments: relatedFragments,
     );
 
-    await _db.insertRecovery(recovery);
-
-    var fragments = _fragments;
+    // 先在内存里算好需要推进的碎片列表，再交给 DB 做单事务写入。
+    final advancedById = <String, Fragment>{};
     for (final fid in outcome.fragmentsToAdvance) {
-      final idx = fragments.indexWhere((x) => x.id == fid);
-      if (idx < 0) {
-        // Rust 返回了本地内存中不存在的碎片 id（数据漂移或并发删除）。
-        // 跳过该条，避免 firstWhere 直接抛 StateError。
+      final current = byId[fid];
+      if (current == null) {
+        // Rust 返回了本地内存中不存在的碎片 id（数据漂移或并发删除），跳过。
         debugPrint(
           '[FragmentsProvider.addRecovery] skipped advance for unknown id $fid',
         );
         continue;
       }
-      final advanced = fragments[idx].copyWith(stage: FragmentStage.recovery);
-      await _db.updateFragment(advanced);
-      fragments = [
-        for (final x in fragments)
-          if (x.id == fid) advanced else x,
-      ];
+      advancedById[fid] = current.copyWith(stage: FragmentStage.recovery);
     }
 
-    _applyView(fragments, [recovery, ..._recoveries]);
-    notifyListeners();
+    await _db.recordRecoveryTx(
+      recovery: recovery,
+      advancedFragments: advancedById.values.toList(growable: false),
+    );
+
+    final fragments = advancedById.isEmpty
+        ? _fragments
+        : [for (final f in _fragments) advancedById[f.id] ?? f];
+
+    _applyView(fragments, [recovery, ..._recoveries], now: now);
+    _safeNotify();
     return recovery;
   }
 
@@ -164,13 +189,17 @@ class FragmentsProvider extends ChangeNotifier {
   /// - 成功：原子替换内存快照，清空 [lastError]。
   /// - 失败：仍然替换列表（用默认 fade=1.0），保证用户刚写入的数据立即可见；
   ///   错误通过 [lastError] 暴露给 UI 提示，不静默吞掉。
-  void _applyView(List<Fragment> fragments, List<Recovery> recoveries) {
+  void _applyView(
+    List<Fragment> fragments,
+    List<Recovery> recoveries, {
+    DateTime? now,
+  }) {
     try {
-      final now = _now();
+      final at = now ?? _now();
       final view = RustBackend.buildHomeView(
         fragments: fragments,
         recoveries: recoveries,
-        now: now,
+        now: at,
       );
       final byId = {for (final v in view.fragments) v.id: v.fadeLevel};
       _fragments = [

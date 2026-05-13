@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
-    show PlatformInt64Util;
+    show PlatformInt64, PlatformInt64Util;
 
 import '../models/fragment.dart';
 import '../models/recovery.dart';
@@ -39,12 +39,16 @@ class RustBackend {
 
   // === DTO 转换：领域 -> FRB DTO ============================================
 
+  /// 把 DateTime 转成 Rust 侧期待的 UTC 毫秒时间戳。
+  /// [now] 为 null 时使用系统时钟。
+  static PlatformInt64 _toMs(DateTime? now) => PlatformInt64Util.from(
+    (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch,
+  );
+
   static dto.FragmentDto toFragmentDto(Fragment f) => dto.FragmentDto(
     schemaVersion: expectedFragmentSchema,
     id: f.id,
-    createdAtMs: PlatformInt64Util.from(
-      f.createdAt.toUtc().millisecondsSinceEpoch,
-    ),
+    createdAtMs: _toMs(f.createdAt),
     intensity: f.intensity.value,
     fadePeriodDays: f.fadePeriod.days,
     stage: f.stage.code,
@@ -53,9 +57,7 @@ class RustBackend {
   static dto.RecoveryDto toRecoveryDto(Recovery r) => dto.RecoveryDto(
     schemaVersion: expectedRecoverySchema,
     id: r.id,
-    createdAtMs: PlatformInt64Util.from(
-      r.createdAt.toUtc().millisecondsSinceEpoch,
-    ),
+    createdAtMs: _toMs(r.createdAt),
     intensity: r.intensity,
     description: r.description,
     relatedFragmentIds: r.relatedFragmentIds,
@@ -69,11 +71,10 @@ class RustBackend {
     required List<Recovery> recoveries,
     DateTime? now,
   }) {
-    final n = (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch;
     return view_api.buildHomeView(
       fragments: fragments.map(toFragmentDto).toList(growable: false),
       recoveries: recoveries.map(toRecoveryDto).toList(growable: false),
-      nowMs: PlatformInt64Util.from(n),
+      nowMs: _toMs(now),
     );
   }
 
@@ -83,11 +84,10 @@ class RustBackend {
     List<Recovery> recoveries, {
     DateTime? now,
   }) {
-    final n = (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch;
     return fade_api.fadeLevel(
       fragment: toFragmentDto(fragment),
       recoveries: recoveries.map(toRecoveryDto).toList(growable: false),
-      nowMs: PlatformInt64Util.from(n),
+      nowMs: _toMs(now),
     );
   }
 
@@ -97,11 +97,10 @@ class RustBackend {
     required List<Recovery> recoveries,
     DateTime? now,
   }) {
-    final n = (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch;
     return fade_api.growthScore(
       fragments: fragments.map(toFragmentDto).toList(growable: false),
       recoveries: recoveries.map(toRecoveryDto).toList(growable: false),
-      nowMs: PlatformInt64Util.from(n),
+      nowMs: _toMs(now),
     );
   }
 

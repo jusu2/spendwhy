@@ -133,4 +133,31 @@ class AppDatabase {
     final all = await listRecoveries();
     return all.where((r) => r.relatedFragmentIds.contains(fragmentId)).toList();
   }
+
+  // === Cross-table operations ================================================
+
+  /// 在单个事务里写入一条 [recovery] 并把 [advancedFragments] 的 stage 推进。
+  ///
+  /// 任一步失败都会回滚，避免出现「恢复已记录但相关碎片未推进」之类的半完成状态。
+  Future<void> recordRecoveryTx({
+    required Recovery recovery,
+    required List<Fragment> advancedFragments,
+  }) async {
+    final database = await db;
+    await database.transaction((txn) async {
+      await txn.insert(
+        'recoveries',
+        recovery.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      for (final f in advancedFragments) {
+        await txn.update(
+          'fragments',
+          f.toMap(),
+          where: 'id = ?',
+          whereArgs: [f.id],
+        );
+      }
+    });
+  }
 }
