@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fragments/services/safety_classifier.dart';
+import 'package:fragments/services/emotional_safety_classifier.dart';
 
 void main() {
   test('empty text -> none', () {

@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
 import '../models/enums.dart';
 import '../services/app_settings.dart';
-import '../services/safety_classifier.dart';
+import '../services/emotional_safety_classifier.dart';
 import '../state/fragments_provider.dart';
 import '../widgets/intensity_picker.dart';
 import '../widgets/tag_picker.dart';

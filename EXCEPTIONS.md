@@ -38,11 +38,9 @@
 - 退出条件: 业务逻辑迁至 Rust application；Provider 仅做 view state，或通过 ADR 决定迁移到 Riverpod。
 - 优先级: P2
 
-## E-005 flutter_rust_bridge demo API 尚未清理
+## E-005 flutter_rust_bridge demo API 已清理
 
-- 状态: 已存在
+- 状态: 已解决（2026-05）
 - 位置: [rust/src/api/simple.rs](rust/src/api/simple.rs)
-- 原因: FRB 初始化模板遗留，当前测试 mock 仍覆盖该接口。
-- 风险: 生产 API 表面混入示例接口，增加误用和维护噪音。
-- 退出条件: 删除 `greet`，重新生成 FRB 代码，并同步更新 Dart mock 测试。
-- 优先级: P2
+- 处理: `greet` 演示函数已删除，`simple.rs` 仅保留 `init_app()` FRB 初始化入口。
+- 后续: 若新增 demo / 调试用 FFI，统一放到 `rust/src/api/__dev/` 或 feature gate 后再开放。
