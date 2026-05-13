@@ -26,3 +26,20 @@ double growthScore({
   recoveries: recoveries,
   nowMs: nowMs,
 );
+
+/// 提供给 UI 成长曲线使用的批量采样接口。
+///
+/// 返回 `samples + 1` 个点，代替 Dart 侧重复实现同一算法。
+Float64List growthScoreSeries({
+  required List<FragmentDto> fragments,
+  required List<RecoveryDto> recoveries,
+  required PlatformInt64 startMs,
+  required PlatformInt64 endMs,
+  required int samples,
+}) => RustLib.instance.api.crateApiFadeGrowthScoreSeries(
+  fragments: fragments,
+  recoveries: recoveries,
+  startMs: startMs,
+  endMs: endMs,
+  samples: samples,
+);

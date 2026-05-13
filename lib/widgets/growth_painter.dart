@@ -1,8 +1,8 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/fragment.dart';
 import '../models/recovery.dart';
+import '../services/rust_backend.dart';
 import '../theme/app_colors.dart';
 
 /// 成长线 Canvas：在时间轴上绘制
@@ -92,7 +92,7 @@ class GrowthPainter extends CustomPainter {
       canvas.drawLine(Offset(x, centerY), Offset(x, y), linePaint);
     }
 
-    // === 和解分数曲线（基于时间窗的滑动平均淡化）===
+    // === 和解分数曲线（交由 Rust 批量采样，保证与 growthScore 同一算法）===
     const samples = 80;
     final path = Path();
     final paint = Paint()
@@ -104,11 +104,15 @@ class GrowthPainter extends CustomPainter {
 
     final totalMs = end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
     if (totalMs > 0) {
-      for (var i = 0; i <= samples; i++) {
-        final t = start.add(
-          Duration(milliseconds: (totalMs * i / samples).round()),
-        );
-        final score = _snapshotGrowthScore(t);
+      final series = RustBackend.growthScoreSeries(
+        fragments: fragments,
+        recoveries: recoveries,
+        start: start,
+        end: end,
+        samples: samples,
+      );
+      for (var i = 0; i < series.length; i++) {
+        final score = series[i];
         final x = pad.left + (i / samples) * (size.width - pad.horizontal);
         final y =
             centerY - (score / 100.0) * (size.height - pad.vertical) * 0.35;
@@ -120,30 +124,6 @@ class GrowthPainter extends CustomPainter {
       }
       canvas.drawPath(path, paint);
     }
-  }
-
-  double _snapshotGrowthScore(DateTime t) {
-    if (fragments.isEmpty) return 0;
-    double weightedClarity = 0;
-    double weightSum = 0;
-    for (final f in fragments) {
-      if (f.createdAt.isAfter(t)) continue;
-      final ageDays = t.difference(f.createdAt).inHours / 24.0;
-      final timeFactor = (ageDays / f.fadePeriod.days).clamp(0.0, 1.0);
-      double recoveryFactor = 0;
-      for (final r in recoveries) {
-        if (r.createdAt.isAfter(t)) continue;
-        if (!r.relatedFragmentIds.contains(f.id)) continue;
-        final since = t.difference(r.createdAt).inHours / 24.0;
-        recoveryFactor += (r.intensity / 5.0) * 0.25 * math.exp(-since / 60.0);
-      }
-      final clarity = (1 - timeFactor - recoveryFactor).clamp(0.0, 1.0);
-      final w = f.intensity.value.toDouble();
-      weightedClarity += clarity * w;
-      weightSum += w;
-    }
-    if (weightSum == 0) return 0;
-    return ((1 - weightedClarity / weightSum) * 100).clamp(0, 100);
   }
 
   @override

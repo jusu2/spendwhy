@@ -104,6 +104,24 @@ class RustBackend {
     );
   }
 
+  /// 在 [start, end] 区间均匀采样 `samples + 1` 个 growth_score 数据点，
+  /// 供 UI 绘制成长曲线时一次性获取，避免在 Dart 侧重复实现 fade 算法。
+  static List<double> growthScoreSeries({
+    required List<Fragment> fragments,
+    required List<Recovery> recoveries,
+    required DateTime start,
+    required DateTime end,
+    int samples = 80,
+  }) {
+    return fade_api.growthScoreSeries(
+      fragments: fragments.map(toFragmentDto).toList(growable: false),
+      recoveries: recoveries.map(toRecoveryDto).toList(growable: false),
+      startMs: _toMs(start),
+      endMs: _toMs(end),
+      samples: samples,
+    );
+  }
+
   /// 记录一次恢复事件。Rust 端校验输入并应用业务规则
   /// （例如 outburst 阶段的相关碎片应推进到 recovery）。
   static dto.RecordRecoveryOutcomeDto recordRecovery({
