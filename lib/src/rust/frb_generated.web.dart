@@ -9,6 +9,17 @@
 import 'api/dto.dart';
 import 'api/fade.dart';
 import 'api/recovery.dart';
+import 'api/storage/common.dart';
+import 'api/storage/pattern_a_memory.dart';
+import 'api/storage/pattern_b_atomic_file.dart';
+import 'api/storage/pattern_c_blob.dart';
+import 'api/storage/pattern_d_snapshot.dart';
+import 'api/storage/pattern_e_event_log.dart';
+import 'api/storage/pattern_f_ordered_kv.dart';
+import 'api/storage/pattern_g_settings.dart';
+import 'api/storage/pattern_h_persistent_cache.dart';
+import 'api/storage/pattern_i_encryption.dart';
+import 'api/storage/pattern_j_backup.dart';
 import 'api/transport/common.dart';
 import 'api/transport/pattern_a_sync.dart';
 import 'api/transport/pattern_b_async.dart';
@@ -49,6 +60,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle;
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_StorageSampleMemoryCachePtr => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_TransportSampleReplPtr => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl;
 
@@ -62,6 +77,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CancelHandle
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  );
+
+  @protected
+  StorageSampleMemoryCache
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
     dynamic raw,
   );
 
@@ -80,6 +101,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CancelHandle
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  );
+
+  @protected
+  StorageSampleMemoryCache
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
     dynamic raw,
   );
 
@@ -111,6 +138,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CancelHandle
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    dynamic raw,
+  );
+
+  @protected
+  StorageSampleMemoryCache
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
     dynamic raw,
   );
 
@@ -167,6 +200,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecoveryDto dco_decode_box_autoadd_recovery_dto(dynamic raw);
 
   @protected
+  StorageSampleEventDto dco_decode_box_autoadd_storage_sample_event_dto(
+    dynamic raw,
+  );
+
+  @protected
   TransportRequestMeta dco_decode_box_autoadd_transport_request_meta(
     dynamic raw,
   );
@@ -211,10 +249,36 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Int64List dco_decode_list_prim_i_64_strict(dynamic raw);
 
   @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
   List<RecoveryDto> dco_decode_list_recovery_dto(dynamic raw);
+
+  @protected
+  List<StorageSampleEventDto> dco_decode_list_storage_sample_event_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<StorageSampleKvEntryDto> dco_decode_list_storage_sample_kv_entry_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<StorageSampleSnapshotDto> dco_decode_list_storage_sample_snapshot_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<StorageSampleSnapshotFile> dco_decode_list_storage_sample_snapshot_file(
+    dynamic raw,
+  );
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
@@ -226,13 +290,51 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
+  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+
+  @protected
   ProgressDto dco_decode_progress_dto(dynamic raw);
 
   @protected
   RecordRecoveryOutcomeDto dco_decode_record_recovery_outcome_dto(dynamic raw);
 
   @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
+
+  @protected
   RecoveryDto dco_decode_recovery_dto(dynamic raw);
+
+  @protected
+  StorageError dco_decode_storage_error(dynamic raw);
+
+  @protected
+  StorageSampleBackupReceiptDto dco_decode_storage_sample_backup_receipt_dto(
+    dynamic raw,
+  );
+
+  @protected
+  StorageSampleBlobReceiptDto dco_decode_storage_sample_blob_receipt_dto(
+    dynamic raw,
+  );
+
+  @protected
+  StorageSampleCacheStatsDto dco_decode_storage_sample_cache_stats_dto(
+    dynamic raw,
+  );
+
+  @protected
+  StorageSampleEventDto dco_decode_storage_sample_event_dto(dynamic raw);
+
+  @protected
+  StorageSampleKvEntryDto dco_decode_storage_sample_kv_entry_dto(dynamic raw);
+
+  @protected
+  StorageSampleSnapshotDto dco_decode_storage_sample_snapshot_dto(dynamic raw);
+
+  @protected
+  StorageSampleSnapshotFile dco_decode_storage_sample_snapshot_file(
+    dynamic raw,
+  );
 
   @protected
   TransportError dco_decode_transport_error(dynamic raw);
@@ -300,6 +402,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  StorageSampleMemoryCache
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TransportSampleRepl
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
     SseDeserializer deserializer,
@@ -314,6 +422,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CancelHandle
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleMemoryCache
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
     SseDeserializer deserializer,
   );
 
@@ -335,6 +449,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CancelHandle
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleMemoryCache
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
     SseDeserializer deserializer,
   );
 
@@ -394,6 +514,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RecoveryDto sse_decode_box_autoadd_recovery_dto(SseDeserializer deserializer);
 
   @protected
+  StorageSampleEventDto sse_decode_box_autoadd_storage_sample_event_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TransportRequestMeta sse_decode_box_autoadd_transport_request_meta(
     SseDeserializer deserializer,
   );
@@ -440,10 +565,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Int64List sse_decode_list_prim_i_64_strict(SseDeserializer deserializer);
 
   @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<RecoveryDto> sse_decode_list_recovery_dto(SseDeserializer deserializer);
+
+  @protected
+  List<StorageSampleEventDto> sse_decode_list_storage_sample_event_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<StorageSampleKvEntryDto> sse_decode_list_storage_sample_kv_entry_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<StorageSampleSnapshotDto> sse_decode_list_storage_sample_snapshot_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<StorageSampleSnapshotFile> sse_decode_list_storage_sample_snapshot_file(
+    SseDeserializer deserializer,
+  );
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
@@ -455,6 +608,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
+  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
   ProgressDto sse_decode_progress_dto(SseDeserializer deserializer);
 
   @protected
@@ -463,7 +619,50 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  (String, String) sse_decode_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RecoveryDto sse_decode_recovery_dto(SseDeserializer deserializer);
+
+  @protected
+  StorageError sse_decode_storage_error(SseDeserializer deserializer);
+
+  @protected
+  StorageSampleBackupReceiptDto sse_decode_storage_sample_backup_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleBlobReceiptDto sse_decode_storage_sample_blob_receipt_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleCacheStatsDto sse_decode_storage_sample_cache_stats_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleEventDto sse_decode_storage_sample_event_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleKvEntryDto sse_decode_storage_sample_kv_entry_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleSnapshotDto sse_decode_storage_sample_snapshot_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  StorageSampleSnapshotFile sse_decode_storage_sample_snapshot_file(
+    SseDeserializer deserializer,
+  );
 
   @protected
   TransportError sse_decode_transport_error(SseDeserializer deserializer);
@@ -551,6 +750,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    StorageSampleMemoryCache self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
     TransportSampleRepl self,
     SseSerializer serializer,
@@ -567,6 +773,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
     CancelHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    StorageSampleMemoryCache self,
     SseSerializer serializer,
   );
 
@@ -603,6 +816,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
     CancelHandle self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    StorageSampleMemoryCache self,
     SseSerializer serializer,
   );
 
@@ -672,6 +892,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_storage_sample_event_dto(
+    StorageSampleEventDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_transport_request_meta(
     TransportRequestMeta self,
     SseSerializer serializer,
@@ -732,14 +958,47 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_list_record_string_string(
+    List<(String, String)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_recovery_dto(
     List<RecoveryDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_storage_sample_event_dto(
+    List<StorageSampleEventDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_storage_sample_kv_entry_dto(
+    List<StorageSampleKvEntryDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_storage_sample_snapshot_dto(
+    List<StorageSampleSnapshotDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_storage_sample_snapshot_file(
+    List<StorageSampleSnapshotFile> self,
     SseSerializer serializer,
   );
 
@@ -753,6 +1012,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_list_prim_u_8_strict(
+    Uint8List? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_progress_dto(ProgressDto self, SseSerializer serializer);
 
   @protected
@@ -762,7 +1027,58 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_record_string_string(
+    (String, String) self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_recovery_dto(RecoveryDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_storage_error(StorageError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_storage_sample_backup_receipt_dto(
+    StorageSampleBackupReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_storage_sample_blob_receipt_dto(
+    StorageSampleBlobReceiptDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_storage_sample_cache_stats_dto(
+    StorageSampleCacheStatsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_storage_sample_event_dto(
+    StorageSampleEventDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_storage_sample_kv_entry_dto(
+    StorageSampleKvEntryDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_storage_sample_snapshot_dto(
+    StorageSampleSnapshotDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_storage_sample_snapshot_file(
+    StorageSampleSnapshotFile self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_transport_error(
@@ -871,6 +1187,22 @@ class RustLibWire implements BaseWire {
       );
 
   void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+        ptr,
+      );
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+        ptr,
+      );
+
+  void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTransportSampleRepl(
     int ptr,
   ) => wasmModule
@@ -916,6 +1248,16 @@ extension type RustLibWasmModule._(JSObject _) implements JSObject {
 
   external void
   rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancelHandle(
+    int ptr,
+  );
+
+  external void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
+    int ptr,
+  );
+
+  external void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStorageSampleMemoryCache(
     int ptr,
   );
 
