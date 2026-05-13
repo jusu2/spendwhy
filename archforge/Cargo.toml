@@ -36,6 +36,21 @@ futures = "0.3"
 # Adapter-only.
 dashmap = "5"
 
+# Auth-only crypto + secret handling.
+# argon2id is the OWASP-recommended default; subtle gives us constant-time
+# byte comparison for any non-PHC code path; secrecy zeroises plaintext on
+# drop and redacts Debug.
+argon2 = { version = "0.5", default-features = false, features = ["alloc", "password-hash"] }
+password-hash = { version = "0.5", default-features = false, features = ["alloc"] }
+subtle = { version = "2", default-features = false }
+secrecy = { version = "0.10", features = ["serde"] }
+zeroize = { version = "1", features = ["derive"] }
+
+# JsonFile adapter: cross-platform advisory file lock for write atomicity
+# under concurrent processes.
+fs2 = "0.4"
+rand = "0.8"
+
 # Test infra.
 proptest = "1"
 tempfile = "3"

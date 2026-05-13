@@ -16,14 +16,14 @@ unsafe_code = "forbid"
 # Exactly one backend must be enabled at build time. Build fails clearly if
 # both or neither are set.
 default = ["memory-backend"]
-memory-backend = ["dep:archforge-infra-auth-memory"]
+memory-backend = []
 jsonfile-backend = ["dep:archforge-infra-auth-jsonfile"]
 
 [dependencies]
 archforge-kernel = { workspace = true }
 archforge-contract-auth = { workspace = true }
 archforge-app-auth = { workspace = true }
-archforge-infra-auth-memory   = { workspace = true, optional = true }
+archforge-infra-auth-memory   = { workspace = true }
 archforge-infra-auth-jsonfile = { workspace = true, optional = true }
 
 tokio = { workspace = true }

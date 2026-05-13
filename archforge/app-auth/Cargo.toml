@@ -18,6 +18,11 @@ archforge-kernel = { workspace = true }
 archforge-contract-auth = { workspace = true }
 archforge-domain-auth = { workspace = true }
 async-trait = { workspace = true }
+argon2 = { workspace = true }
+password-hash = { workspace = true }
+secrecy = { workspace = true }
+subtle = { workspace = true }
+rand = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }

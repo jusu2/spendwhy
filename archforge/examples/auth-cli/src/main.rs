@@ -7,18 +7,20 @@
 //! cargo run -p auth-cli --no-default-features --features jsonfile-backend -- demo
 //! ```
 //!
-//! The business code in [`run`] is identical for both — the only thing that
-//! changes is which adapter [`make_repo`] returns. This is the headline
-//! property the ArchForge library is supposed to deliver.
+//! The business code in [`run`] is identical for both — only [`make_repo`]
+//! changes. That is the headline property the ArchForge library delivers.
 
 #![forbid(unsafe_code)]
 
 use anyhow::{Context as _, Result};
-use archforge_app_auth::{create_user, find_user_by_email, find_user_by_id};
-use archforge_contract_auth::{CreateUserCmd, DisplayName, Email};
-use archforge_kernel::Context;
-
-// --- backend selection (compile-time) ---------------------------------------
+use archforge_app_auth::{
+    create_user, find_user_by_email, find_user_by_id, verify_password, PasswordHasher,
+};
+use archforge_contract_auth::{
+    CreateUserCmd, DisplayName, Email, PlainPassword, VerifyPasswordCmd,
+};
+use archforge_infra_auth_memory::InMemoryOutbox;
+use archforge_kernel::{Context, SystemClock};
 
 #[cfg(all(feature = "memory-backend", feature = "jsonfile-backend"))]
 compile_error!(
@@ -50,8 +52,6 @@ mod backend {
     pub const NAME: &str = "jsonfile";
 }
 
-// --- main / business code ---------------------------------------------------
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let repo = backend::make();
@@ -64,40 +64,65 @@ where
     R: archforge_contract_auth::UserReader + archforge_contract_auth::UserWriter,
 {
     let ctx = Context::new();
+    let outbox = InMemoryOutbox::new();
+    let clock = SystemClock;
+    // Production preset is slow on cold runs; CLI demo uses test_fast for
+    // snappy startup. Real services should call `PasswordHasher::production()`.
+    let hasher = PasswordHasher::test_fast();
 
     let email = Email::new("demo@archforge.dev").context("invalid demo email")?;
     let name = DisplayName::new("Demo User").context("invalid demo name")?;
+    let plain_pw = "demo-password-please-rotate";
 
-    // Idempotent demo: if the user already exists (jsonfile backend will see
-    // them on the second run) we just look them up instead of inserting.
-    let existing = find_user_by_email(repo, &ctx, email.clone()).await?;
-    let dto = match existing {
+    let dto = match find_user_by_email(repo, &ctx, email.clone()).await? {
         Some(u) => {
             println!("[auth-cli] user already exists -> looked up");
             u
         }
         None => {
             let cmd = CreateUserCmd {
-                email,
+                email: email.clone(),
                 display_name: name,
+                password: Some(PlainPassword::new(plain_pw)),
             };
-            let dto = create_user(repo, &ctx, cmd).await?;
+            let dto = create_user(repo, &outbox, &clock, &hasher, &ctx, cmd).await?;
             println!("[auth-cli] created user");
             dto
         }
     };
 
     println!(
-        "[auth-cli] id={}  email={}  name={}  created_at={}",
+        "[auth-cli] id={}  email={}  name={}  created_at={}  version={}",
         dto.id,
         dto.email,
         dto.display_name,
         dto.created_at.as_ms(),
+        dto.version,
     );
 
     let again = find_user_by_id(repo, &ctx, dto.id).await?;
     assert_eq!(again.as_ref(), Some(&dto));
     println!("[auth-cli] find_by_id round-trip OK");
 
+    if dto.password_hash.is_some() {
+        let auth = verify_password(
+            repo,
+            &outbox,
+            &clock,
+            &hasher,
+            &ctx,
+            VerifyPasswordCmd {
+                email,
+                password: PlainPassword::new(plain_pw),
+            },
+        )
+        .await?;
+        println!("[auth-cli] password verified for id={}", auth.user.id);
+    }
+
+    println!(
+        "[auth-cli] outbox recorded {} event(s)",
+        outbox.snapshot().len()
+    );
     Ok(())
 }
