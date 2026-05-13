@@ -11,6 +11,8 @@ use crate::error::{AppError, AppResult};
 
 pub const FRAGMENT_DTO_SCHEMA_VERSION: u32 = 1;
 pub const RECOVERY_DTO_SCHEMA_VERSION: u32 = 1;
+pub const HOME_VIEW_DTO_SCHEMA_VERSION: u32 = 1;
+pub const RECORD_RECOVERY_OUTCOME_DTO_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Debug, Clone)]
 pub struct FragmentDto {

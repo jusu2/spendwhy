@@ -93,7 +93,7 @@ class GrowthPainter extends CustomPainter {
     }
 
     // === 和解分数曲线（基于时间窗的滑动平均淡化）===
-    final samples = 80;
+    const samples = 80;
     final path = Path();
     final paint = Paint()
       ..color = (isDark ? AppColors.mistDark : AppColors.mist).withValues(

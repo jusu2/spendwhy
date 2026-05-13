@@ -1,6 +1,8 @@
 //! FFI: 记录恢复事件。
 
-use crate::api::dto::{FragmentDto, RecordRecoveryOutcomeDto, RecoveryDto};
+use crate::api::dto::{
+    FragmentDto, RecordRecoveryOutcomeDto, RecoveryDto, RECORD_RECOVERY_OUTCOME_DTO_SCHEMA_VERSION,
+};
 use crate::application::recovery::{record_recovery as run_use_case, RecordRecoveryInput};
 use crate::error::AppResult;
 
@@ -21,7 +23,7 @@ pub fn record_recovery(
     })?;
 
     Ok(RecordRecoveryOutcomeDto {
-        schema_version: 1,
+        schema_version: RECORD_RECOVERY_OUTCOME_DTO_SCHEMA_VERSION,
         recovery: outcome.recovery.into(),
         fragments_to_advance: outcome.fragments_to_advance,
     })

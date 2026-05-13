@@ -1,6 +1,8 @@
 //! FFI: 复合首页视图。
 
-use crate::api::dto::{FragmentDto, FragmentViewDto, HomeViewDto, RecoveryDto};
+use crate::api::dto::{
+    FragmentDto, FragmentViewDto, HomeViewDto, RecoveryDto, HOME_VIEW_DTO_SCHEMA_VERSION,
+};
 use crate::application::view;
 use crate::error::AppResult;
 
@@ -24,7 +26,7 @@ pub fn build_home_view(
         now_ms,
     })?;
     Ok(HomeViewDto {
-        schema_version: 1,
+        schema_version: HOME_VIEW_DTO_SCHEMA_VERSION,
         fragments: view
             .fragments
             .into_iter()
