@@ -18,8 +18,8 @@ mod password;
 pub use password::PasswordHasher;
 
 use archforge_contract_auth::{
-    CreateUserCmd, Email, RenameUserCmd, SetPasswordCmd, UserDto, UserId, UserReader,
-    UserWriter, VerifyPasswordCmd, Version,
+    CreateUserCmd, Email, RenameUserCmd, SetPasswordCmd, UserDto, UserId, UserReader, UserWriter,
+    VerifyPasswordCmd, Version,
 };
 use archforge_domain_auth::User;
 use archforge_kernel::{AppError, BulkLoadable, Clock, Context, OutboxSink, Result};
@@ -241,9 +241,16 @@ mod tests {
     #[tokio::test]
     async fn create_then_find_round_trips_and_emits_event() {
         let (repo, outbox, clock, hasher, ctx) = fixtures();
-        let dto = create_user(&repo, &outbox, &clock, &hasher, &ctx, create_cmd("a@b", "Alice", None))
-            .await
-            .unwrap();
+        let dto = create_user(
+            &repo,
+            &outbox,
+            &clock,
+            &hasher,
+            &ctx,
+            create_cmd("a@b", "Alice", None),
+        )
+        .await
+        .unwrap();
         let again = find_user_by_id(&repo, &ctx, dto.id).await.unwrap();
         assert_eq!(again.as_ref(), Some(&dto));
         let events = outbox.snapshot();
@@ -253,12 +260,26 @@ mod tests {
     #[tokio::test]
     async fn duplicate_email_is_conflict() {
         let (repo, outbox, clock, hasher, ctx) = fixtures();
-        create_user(&repo, &outbox, &clock, &hasher, &ctx, create_cmd("a@b", "Alice", None))
-            .await
-            .unwrap();
-        let err = create_user(&repo, &outbox, &clock, &hasher, &ctx, create_cmd("a@b", "Bob", None))
-            .await
-            .unwrap_err();
+        create_user(
+            &repo,
+            &outbox,
+            &clock,
+            &hasher,
+            &ctx,
+            create_cmd("a@b", "Alice", None),
+        )
+        .await
+        .unwrap();
+        let err = create_user(
+            &repo,
+            &outbox,
+            &clock,
+            &hasher,
+            &ctx,
+            create_cmd("a@b", "Bob", None),
+        )
+        .await
+        .unwrap_err();
         assert!(matches!(err, AppError::Conflict(_)));
         // The conflicting attempt must NOT have appended an event.
         assert_eq!(outbox.snapshot().len(), 1);
@@ -285,9 +306,16 @@ mod tests {
     #[tokio::test]
     async fn rename_advances_version_via_clock() {
         let (repo, outbox, clock, hasher, ctx) = fixtures();
-        let dto = create_user(&repo, &outbox, &clock, &hasher, &ctx, create_cmd("a@b", "Alice", None))
-            .await
-            .unwrap();
+        let dto = create_user(
+            &repo,
+            &outbox,
+            &clock,
+            &hasher,
+            &ctx,
+            create_cmd("a@b", "Alice", None),
+        )
+        .await
+        .unwrap();
         clock.advance_ms(10);
         let renamed = rename_user(
             &repo,
@@ -396,14 +424,8 @@ mod tests {
             &clock,
             &ctx,
             vec![
-                (
-                    Email::new("a@b").unwrap(),
-                    DisplayName::new("A").unwrap(),
-                ),
-                (
-                    Email::new("c@d").unwrap(),
-                    DisplayName::new("C").unwrap(),
-                ),
+                (Email::new("a@b").unwrap(), DisplayName::new("A").unwrap()),
+                (Email::new("c@d").unwrap(), DisplayName::new("C").unwrap()),
             ],
         )
         .await

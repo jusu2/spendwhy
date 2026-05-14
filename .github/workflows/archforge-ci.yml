@@ -77,3 +77,31 @@ jobs:
         run: cargo deny --manifest-path Cargo.toml check
       - name: dependency-direction lint
         run: pwsh scripts/check-invariants.ps1
+
+  public-api:
+    name: public-API freeze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: archforge
+      # cargo-public-api needs only a C compiler available; Linux runners
+      # ship gcc by default. We pin --locked to keep the gate reproducible.
+      - name: install cargo-public-api
+        run: cargo install --locked cargo-public-api
+      - name: diff against committed baselines
+        run: pwsh scripts/check-public-api.ps1
+      # On drift, surface both the baseline and the would-be-new snapshot
+      # so reviewers can inspect locally without re-running the tool.
+      - name: upload snapshots on drift
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-api-snapshots
+          path: |
+            archforge/kernel/.public-api/
+            archforge/ffi/.public-api/
+            archforge/contract-auth/.public-api/
+          if-no-files-found: ignore

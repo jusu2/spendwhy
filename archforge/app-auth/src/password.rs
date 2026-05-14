@@ -12,9 +12,9 @@
 //! The dummy hash (used to keep `verify_password` constant-time when the
 //! user does not exist) is computed once at construction and reused.
 
-use argon2::{Algorithm, Argon2, Params, Version as A2Version};
 use archforge_contract_auth::{PasswordHash, PlainPassword};
 use archforge_kernel::{AppError, Result};
+use argon2::{Algorithm, Argon2, Params, Version as A2Version};
 use password_hash::{
     rand_core::OsRng, PasswordHash as PhcHash, PasswordHasher as PhcHasher,
     PasswordVerifier as PhcVerifier, SaltString,
@@ -40,8 +40,8 @@ impl PasswordHasher {
     /// Fast preset for unit tests (still real argon2id, just tiny memory).
     /// **Never use in production.**
     pub fn test_fast() -> Self {
-        let params = Params::new(8, 1, 1, Some(32))
-            .expect("argon2 params: test_fast preset must be valid");
+        let params =
+            Params::new(8, 1, 1, Some(32)).expect("argon2 params: test_fast preset must be valid");
         Self::with_params(params)
     }
 

@@ -34,9 +34,7 @@ arch_newtype! {
 /// Every successful write bumps this monotonically. `update` operations
 /// must echo the version they read to the Port so the adapter can reject
 /// stale writes with [`AppError::Conflict`].
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Version(u64);
 

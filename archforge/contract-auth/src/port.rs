@@ -51,24 +51,14 @@ pub trait UserWriter: Send + Sync {
     /// - `AppError::Conflict` if the stored version differs from
     ///   `expected_version` (lost update prevention).
     /// - `AppError::Conflict` if the new email collides with another user.
-    async fn update(
-        &self,
-        ctx: &Context,
-        user: &UserDto,
-        expected_version: Version,
-    ) -> Result<()>;
+    async fn update(&self, ctx: &Context, user: &UserDto, expected_version: Version) -> Result<()>;
 
     /// Delete a user by id, with version check.
     ///
     /// - `Ok(())` on success (idempotent: deleting a missing id returns Ok).
     /// - `AppError::Conflict` if the stored version differs from
     ///   `expected_version`.
-    async fn delete(
-        &self,
-        ctx: &Context,
-        id: &UserId,
-        expected_version: Version,
-    ) -> Result<()>;
+    async fn delete(&self, ctx: &Context, id: &UserId, expected_version: Version) -> Result<()>;
 }
 
 /// Convenience supertrait for adapters supporting both halves.

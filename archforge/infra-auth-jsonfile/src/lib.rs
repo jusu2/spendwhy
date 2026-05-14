@@ -244,12 +244,7 @@ impl UserWriter for JsonFileUserRepo {
         .map_err(|e| AppError::Internal(format!("join: {e}")))?
     }
 
-    async fn delete(
-        &self,
-        _ctx: &Context,
-        id: &UserId,
-        expected_version: Version,
-    ) -> Result<()> {
+    async fn delete(&self, _ctx: &Context, id: &UserId, expected_version: Version) -> Result<()> {
         let _g = self.lock.lock().await;
         let me = self.clone();
         let id = *id;

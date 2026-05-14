@@ -1,0 +1,39 @@
+[package]
+name = "archforge-ffi"
+version = "0.1.0"
+description = "Panic-isolation guards and wire-error mapping for ArchForge's FFI boundary."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# Layer placement:
+#   ffi sits *above* contract-* and *below* the bridge layer that calls into
+#   flutter_rust_bridge / cbindgen / any C ABI. It depends only on kernel,
+#   because its job is to harden the AppError boundary, not to know about
+#   specific domains.
+#
+# Invariant compliance:
+#   - I1 (kernel pristine):     ffi is not kernel.
+#   - I2 (contract-*):          n/a (ffi is not a contract crate).
+#   - I3 (domain-*):            n/a.
+#   - I4 (infra-*):             n/a.
+#   - Public-surface freeze:    ffi participates in cargo-public-api gating
+#                               from day one (.public-api/api.txt).
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unused_must_use = "deny"
+
+[dependencies]
+archforge-kernel = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+futures = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+proptest = { workspace = true }

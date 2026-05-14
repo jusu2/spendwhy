@@ -57,9 +57,7 @@ const IDEMPOTENCY_KEY_MAX: usize = 256;
 const LOCALE_MAX: usize = 35; // BCP-47 grammar caps tags well below this.
 
 fn is_printable_no_ws(s: &str) -> bool {
-    !s.is_empty()
-        && s.chars()
-            .all(|c| !c.is_control() && !c.is_whitespace())
+    !s.is_empty() && s.chars().all(|c| !c.is_control() && !c.is_whitespace())
 }
 
 /// Opaque actor (user/service) identifier.
@@ -188,10 +186,7 @@ impl Locale {
                 LOCALE_MAX
             )));
         }
-        if !v
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-')
-        {
+        if !v.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
             return Err(AppError::Invalid(
                 "Locale: only ASCII alphanumerics and '-' allowed".into(),
             ));
@@ -379,8 +374,8 @@ mod tests {
         let back: ActorId = serde_json::from_str(&s).unwrap();
         assert_eq!(a, back);
 
-        let bad: Result<ActorId> = serde_json::from_str("\"\"")
-            .map_err(|e| AppError::Invalid(e.to_string()));
+        let bad: Result<ActorId> =
+            serde_json::from_str("\"\"").map_err(|e| AppError::Invalid(e.to_string()));
         assert!(bad.is_err());
     }
 }

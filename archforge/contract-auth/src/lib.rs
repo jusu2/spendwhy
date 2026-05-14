@@ -21,8 +21,6 @@ mod types;
 pub use commands::{
     CreateUserCmd, PlainPassword, RenameUserCmd, SetPasswordCmd, UserQuery, VerifyPasswordCmd,
 };
-pub use events::{
-    UserCreated, UserEvent, UserPasswordSet, UserPasswordVerified, UserRenamed,
-};
+pub use events::{UserCreated, UserEvent, UserPasswordSet, UserPasswordVerified, UserRenamed};
 pub use port::{CredentialStore, UserReader, UserRepository, UserWriter};
 pub use types::{DisplayName, Email, PasswordHash, UserDto, UserId, Version};

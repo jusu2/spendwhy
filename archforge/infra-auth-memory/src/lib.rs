@@ -149,12 +149,7 @@ impl UserWriter for InMemoryUserRepo {
         }
     }
 
-    async fn delete(
-        &self,
-        _ctx: &Context,
-        id: &UserId,
-        expected_version: Version,
-    ) -> Result<()> {
+    async fn delete(&self, _ctx: &Context, id: &UserId, expected_version: Version) -> Result<()> {
         use dashmap::mapref::entry::Entry;
         match self.by_id.entry(*id) {
             Entry::Vacant(_) => Ok(()), // idempotent delete
@@ -289,8 +284,8 @@ mod conformance_tests {
 
     #[tokio::test]
     async fn passes_concurrency_conformance() {
-        archforge_conformance::user_repo_concurrency_conformance(|| {
-            async { InMemoryUserRepo::new() }
+        archforge_conformance::user_repo_concurrency_conformance(|| async {
+            InMemoryUserRepo::new()
         })
         .await;
     }

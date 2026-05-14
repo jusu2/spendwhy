@@ -1,0 +1,5 @@
+# pending bootstrap
+#
+# Placeholder baseline for archforge-ffi. Bootstrap with:
+#   pwsh archforge/scripts/check-public-api.ps1 -Update
+# then commit the regenerated api.txt in the same PR.

@@ -292,7 +292,10 @@ where
             Err(other) => panic!("unexpected error in same_email race: {other:?}"),
         }
     }
-    assert_eq!(wins, 1, "same_email race: expected exactly one winner, got {wins}");
+    assert_eq!(
+        wins, 1,
+        "same_email race: expected exactly one winner, got {wins}"
+    );
     assert_eq!(
         conflicts,
         n - 1,
@@ -342,7 +345,10 @@ where
             Err(other) => panic!("unexpected error in same_id race: {other:?}"),
         }
     }
-    assert_eq!(wins, 1, "same_id race: expected exactly one winner, got {wins}");
+    assert_eq!(
+        wins, 1,
+        "same_id race: expected exactly one winner, got {wins}"
+    );
     assert_eq!(
         conflicts,
         n - 1,

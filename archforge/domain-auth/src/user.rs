@@ -194,10 +194,8 @@ mod tests {
     }
 
     fn fake_hash() -> PasswordHash {
-        PasswordHash::from_phc(
-            "$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAA$BBBBBBBBBBBBBBBB",
-        )
-        .unwrap()
+        PasswordHash::from_phc("$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAA$BBBBBBBBBBBBBBBB")
+            .unwrap()
     }
 
     #[test]
@@ -299,7 +297,9 @@ mod tests {
     fn set_password_bumps_version_and_emits_event() {
         let (mut u, _) = User::create(email("a@b"), name("Alice"), None, Timestamp::from_ms(100));
         assert!(!u.has_password());
-        let evt = u.set_password(fake_hash(), Timestamp::from_ms(200)).unwrap();
+        let evt = u
+            .set_password(fake_hash(), Timestamp::from_ms(200))
+            .unwrap();
         assert!(u.has_password());
         assert_eq!(u.version(), Version::INITIAL.next());
         match evt {

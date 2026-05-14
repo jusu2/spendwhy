@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "kernel",
+    "ffi",
     "conformance",
     "contract-auth",
     "domain-auth",
@@ -58,6 +59,7 @@ anyhow = "1"
 
 # Internal members — referenced by other members via workspace path.
 archforge-kernel              = { path = "kernel" }
+archforge-ffi                 = { path = "ffi" }
 archforge-conformance         = { path = "conformance" }
 archforge-contract-auth       = { path = "contract-auth" }
 archforge-domain-auth         = { path = "domain-auth" }

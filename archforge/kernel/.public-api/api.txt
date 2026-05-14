@@ -1,0 +1,12 @@
+# pending bootstrap
+#
+# This is a placeholder. The cargo-public-api gate treats this file as
+# "baseline not yet established" and emits a warning instead of failing.
+#
+# To lock in the current surface of archforge-kernel:
+#   1. Install the tool:     cargo install --locked cargo-public-api
+#   2. Generate baseline:    pwsh archforge/scripts/check-public-api.ps1 -Update
+#   3. Commit the regenerated archforge/kernel/.public-api/api.txt
+#
+# After that any PR touching the public API will need to update this file
+# in the same commit, making accidental drift impossible.
