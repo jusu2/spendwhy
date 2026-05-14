@@ -1,13 +1,13 @@
 //! # Auth use cases
 //!
-//! Generic, technology-agnostic orchestration. Use cases bound on the
-//! specific Port capability they need ([`UserReader`], [`UserWriter`],
-//! [`OutboxSink`], [`Clock`]) — the type system rejects miswiring against an
-//! adapter that cannot fulfil the requirement.
+//! 通用的、技术中立的编排层。Use case 仅绑定其需要的具体
+//! Port 能力（[`UserReader`]、[`UserWriter`]、
+//! [`OutboxSink`]、[`Clock`]）—— 类型系统会拒绝
+//! 与不能满足该需求的适配器的错误装配。
 //!
-//! All emitted [`UserEvent`]s are appended to the supplied [`OutboxSink`]
-//! before the use case returns. Time is supplied through [`Clock`] so tests
-//! can use [`FixedClock`] for determinism.
+//! 所有发出的 [`UserEvent`] 在 use case 返回前都会追加到给定的
+//! [`OutboxSink`]。时间通过 [`Clock`] 提供，便于测试
+//! 用 [`FixedClock`] 取得确定性。
 
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, missing_docs)]
@@ -25,19 +25,17 @@ use archforge_domain_auth::User;
 use archforge_kernel::{AppError, BulkLoadable, Clock, Context, OutboxSink, Result};
 use subtle::ConstantTimeEq;
 
-/// Outcome of a successful authentication: the verified user plus the
-/// version the use case observed (useful for chaining a follow-up write
-/// without an extra round-trip).
+/// 成功认证的结果：通过验证的用户加上 use case 观察到的
+/// 版本（便于在不增加额外往返的情况下链入后续写操作）。
 #[derive(Debug, Clone)]
 pub struct AuthenticatedUser {
-    /// The user DTO at the moment of verification.
+    /// 验证时刻的用户 DTO。
     pub user: UserDto,
-    /// Version observed at verification time.
+    /// 验证时刻观察到的版本。
     pub version: Version,
 }
 
-/// Create a new user, enforcing email uniqueness, optionally setting an
-/// initial password.
+/// 新建用户，强制 email 唯一，可选设置初始密码。
 pub async fn create_user<R>(
     repo: &R,
     outbox: &dyn OutboxSink,
@@ -63,13 +61,13 @@ where
     let (user, event) = User::create(cmd.email, cmd.display_name, hash, now);
     let dto = user.to_dto();
     repo.insert(ctx, &dto).await?;
-    // Outbox is appended *after* the write succeeds. In a richer
-    // implementation this would be inside the same transaction (UoW).
+    // Outbox 在写成功 *之后* 才追加。更完善的实现会
+    // 将其放入同一事务中（UoW）。
     outbox.append(ctx, &event).await?;
     Ok(dto)
 }
 
-/// Rename an existing user with optimistic concurrency.
+/// 用乐观并发重命名已存在的用户。
 pub async fn rename_user<R>(
     repo: &R,
     outbox: &dyn OutboxSink,
@@ -93,7 +91,7 @@ where
     Ok(dto)
 }
 
-/// Rotate (or set) a user's password.
+/// 轮换（或设置）用户密码。
 pub async fn set_password<R>(
     repo: &R,
     outbox: &dyn OutboxSink,
@@ -119,12 +117,12 @@ where
     Ok(dto)
 }
 
-/// Verify a user's password.
+/// 验证用户密码。
 ///
-/// **Constant-time** with respect to whether the user exists *or* whether
-/// the password matches: both code paths run an argon2 verification (against
-/// a dummy hash if the user is missing). Failure messages do not distinguish
-/// between the two cases — both return the same `Forbidden`.
+/// 对“用户是否存在”以及“密码是否匹配”均保持 **常数时间**：
+/// 两条路径都会做一次 argon2 验证（用户不存在时
+/// 对一个 dummy 哈希做验证）。失败消息不区分两种情况 ——
+/// 均返回相同的 `Forbidden`。
 pub async fn verify_password<R>(
     repo: &R,
     outbox: &dyn OutboxSink,
@@ -137,8 +135,8 @@ where
     R: UserReader + ?Sized,
 {
     let user = repo.find_by_email(ctx, &cmd.email).await?;
-    // Always do a hash verification, even if the user does not exist or has
-    // no password, to avoid a timing oracle on user existence.
+    // 即使用户不存在或无密码，也总执行一次哈希验证，
+    // 以避免“用户存在性”的计时旁路。
     let dummy = hasher.dummy_hash();
     let target = user
         .as_ref()
@@ -146,15 +144,15 @@ where
         .unwrap_or(&dummy);
     let ok = hasher.verify(&cmd.password, target);
 
-    // ConstantTimeEq on the boolean outcome plus user-presence boolean —
-    // collapses any micro-branching into one comparison.
+    // 对“布尔结果”与“用户存在性”两个布尔值做 ConstantTimeEq ——
+    // 将所有微小分支收敛为一次比较。
     let user_present: u8 = if user.is_some() { 1 } else { 0 };
     let combined: u8 = (ok as u8) & user_present;
     if combined.ct_eq(&1u8).unwrap_u8() == 0 {
         return Err(AppError::Forbidden("invalid credentials".into()));
     }
 
-    // Safe to unwrap: combined == 1 implies user.is_some().
+    // 此处 unwrap 安全：combined == 1 蕴含 user.is_some()。
     let dto = user.expect("user_present is 1");
     let version = dto.version;
     let domain = User::rehydrate(dto.clone())?;
@@ -163,7 +161,7 @@ where
     Ok(AuthenticatedUser { user: dto, version })
 }
 
-/// Lookup by id.
+/// 按 id 查询。
 pub async fn find_user_by_id<R>(repo: &R, ctx: &Context, id: UserId) -> Result<Option<UserDto>>
 where
     R: UserReader + ?Sized,
@@ -171,7 +169,7 @@ where
     repo.find_by_id(ctx, &id).await
 }
 
-/// Lookup by email.
+/// 按 email 查询。
 pub async fn find_user_by_email<R>(repo: &R, ctx: &Context, email: Email) -> Result<Option<UserDto>>
 where
     R: UserReader + ?Sized,
@@ -179,12 +177,12 @@ where
     repo.find_by_email(ctx, &email).await
 }
 
-/// Bulk-import users.
+/// 批量导入用户。
 ///
-/// **Capability-bounded**: requires `R: UserWriter + BulkLoadable`. An
-/// adapter that does not implement `BulkLoadable` cannot be wired here —
-/// the type system rejects the miswiring. This is the live demonstration
-/// of the Capability Marker invariant.
+/// **能力受限（capability-bounded）**：要求 `R: UserWriter + BulkLoadable`。
+/// 未实现 `BulkLoadable` 的适配器无法在此装配 ——
+/// 类型系统会拒绝错误装配。此处是
+/// Capability Marker 不变式的活样本。
 pub async fn import_users<R>(
     repo: &R,
     outbox: &dyn OutboxSink,
@@ -281,7 +279,7 @@ mod tests {
         .await
         .unwrap_err();
         assert!(matches!(err, AppError::Conflict(_)));
-        // The conflicting attempt must NOT have appended an event.
+        // 冲突的那次尝试必须没有追加事件。
         assert_eq!(outbox.snapshot().len(), 1);
     }
 
@@ -409,14 +407,14 @@ mod tests {
         )
         .await
         .unwrap_err();
-        // We deliberately collapse "no such user" into Forbidden so the API
-        // does not leak existence.
+        // 我们刻意将“用户不存在”收敛为 Forbidden，
+        // 避免 API 泄露用户存在性。
         assert!(matches!(err, AppError::Forbidden(_)));
     }
 
     #[tokio::test]
     async fn import_users_requires_bulkloadable() {
-        // InMemoryUserRepo implements BulkLoadable, so this compiles.
+        // InMemoryUserRepo 实现了 BulkLoadable，因此可编译。
         let (repo, outbox, clock, _hasher, ctx) = fixtures();
         let n = import_users(
             &repo,

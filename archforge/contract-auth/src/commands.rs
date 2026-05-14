@@ -1,20 +1,19 @@
-//! Commands and queries that flow from callers (Application layer or
-//! presentation layer) into Ports.
+//! 从调用方 (应用层或表现层) 流入 Port 的 Command 与 Query。
 
 use crate::types::{DisplayName, Email, UserId};
 use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 
-/// Plain-text password wrapper. Lives only inside command shapes so that:
+/// 明文密码 wrapper。只在 command 形状内部存在, 以保证:
 ///
-/// - `Debug` redacts it.
-/// - It is `zeroize::Zeroize`d on drop (via `secrecy`).
-/// - It cannot be `Serialize`d back out (no derive on this struct).
+/// - `Debug` 会脱敏。
+/// - drop 时通过 `secrecy` 触发 `zeroize::Zeroize`。
+/// - 它不能被 `Serialize` 出去 (此 struct 不派生 Serialize)。
 #[derive(Clone)]
 pub struct PlainPassword(pub SecretString);
 
 impl PlainPassword {
-    /// Wrap a plain-text password.
+    /// 包装一段明文密码。
     pub fn new(s: impl Into<String>) -> Self {
         Self(SecretString::new(s.into().into()))
     }
@@ -26,51 +25,51 @@ impl core::fmt::Debug for PlainPassword {
     }
 }
 
-/// Create a new user with the given email and display name.
+/// 用给定的邮箱和展示名创建新用户。
 #[derive(Debug, Clone)]
 pub struct CreateUserCmd {
-    /// Email (must be unique).
+    /// 邮箱 (必须唯一)。
     pub email: Email,
-    /// Initial human-facing name.
+    /// 初始展示名。
     pub display_name: DisplayName,
-    /// Initial password (optional during the migration window).
+    /// 初始密码 (迁移期内可选)。
     pub password: Option<PlainPassword>,
 }
 
-/// Rename an existing user.
+/// 重命名已有用户。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RenameUserCmd {
-    /// Identifier of the user to rename.
+    /// 要重命名的用户标识符。
     pub id: UserId,
-    /// New display name.
+    /// 新的展示名。
     pub display_name: DisplayName,
 }
 
-/// Set or rotate a user's password.
+/// 设置或轮换用户密码。
 #[derive(Debug, Clone)]
 pub struct SetPasswordCmd {
-    /// Identifier.
+    /// 标识符。
     pub id: UserId,
-    /// New password (plain text — hashed inside the use case).
+    /// 新密码 (明文 —— 在 use case 内部做 hash)。
     pub password: PlainPassword,
 }
 
-/// Verify a user's password.
+/// 验证用户密码。
 #[derive(Debug, Clone)]
 pub struct VerifyPasswordCmd {
-    /// Email of the user attempting to authenticate.
+    /// 尝试认证的用户邮箱。
     pub email: Email,
-    /// Submitted password.
+    /// 提交的密码。
     pub password: PlainPassword,
 }
 
-/// Read-side query.
+/// 读侧查询。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(tag = "kind", content = "value")]
 pub enum UserQuery {
-    /// Find a user by primary id.
+    /// 按主键 id 查找用户。
     ById(UserId),
-    /// Find a user by email.
+    /// 按邮箱查找用户。
     ByEmail(Email),
 }

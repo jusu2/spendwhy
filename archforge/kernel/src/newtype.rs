@@ -1,29 +1,29 @@
-//! `arch_newtype!` declarative macro for value-object types.
+//! `arch_newtype!` 声明式宏, 用于值对象类型。
 //!
-//! Two forms:
+//! 两种形式:
 //!
-//! 1. **String newtype with validator**: emits `Debug + Clone + Eq + Hash +
-//!    serde::{Serialize, Deserialize} + Display + TryFrom<String>`. The
-//!    `serde` impl runs the validator on deserialisation, so DTOs reject
-//!    invalid values at the system boundary with no extra code.
+//! 1. **带校验器的 String newtype**: 派生 `Debug + Clone + Eq + Hash +
+//!    serde::{Serialize, Deserialize} + Display + TryFrom<String>`。
+//!    `serde` 实现会在反序列化时跑校验器, 所以 DTO 在系统边界即可拒绝
+//!    非法值, 无需额外代码。
 //!
-//! 2. **Uuid newtype**: type-safe wrapper around `uuid::Uuid`, transparent in
-//!    serde, with `Default` and `Display`.
+//! 2. **Uuid newtype**: `uuid::Uuid` 的类型安全包装, 在 serde 中透明,
+//!    提供 `Default` 和 `Display`。
 //!
-//! ## Caller dependencies
+//! ## 调用方依赖
 //!
-//! Callers must have `serde` (with `derive`) and (for the Uuid form) `uuid`
-//! in their own `Cargo.toml`. The macro uses absolute paths (`::serde::...`,
-//! `::uuid::...`) so the kernel doesn't re-export those crates.
+//! 调用方必须在自己的 `Cargo.toml` 里有 `serde` (带 `derive`) 以及
+//! (Uuid 形式所需的) `uuid`。宏使用绝对路径 (`::serde::...`,
+//! `::uuid::...`), 因此 kernel 不会再导出这些 crate。
 //!
-//! ## Examples
+//! ## 示例
 //!
 //! ```
 //! use archforge_kernel::arch_newtype;
 //!
 //! arch_newtype! {
-//!     /// RFC 5322-ish email. Validator is intentionally tight in tests
-//!     /// and loose enough for fixture data.
+//!     /// 类 RFC 5322 邮箱。校验器在测试里刻意收紧, 同时对 fixture
+//!     /// 数据足够宽松。
 //!     pub struct Email(String) where |s| s.contains('@') && s.len() >= 3;
 //! }
 //!
@@ -32,10 +32,10 @@
 //! }
 //! ```
 
-/// See module-level docs.
+/// 见模块级文档。
 #[macro_export]
 macro_rules! arch_newtype {
-    // ---- String newtype with validator -----------------------------------
+    // ---- 带校验器的 String newtype --------------------------------------
     (
         $(#[$meta:meta])*
         $vis:vis struct $name:ident(String) where |$arg:ident| $validate:expr;
@@ -54,8 +54,8 @@ macro_rules! arch_newtype {
         $vis struct $name(::std::string::String);
 
         impl $name {
-            /// Construct after validation. Returns [`archforge_kernel::AppError::Invalid`]
-            /// when the validator rejects the value.
+            /// 校验后构造。校验器拒绝值时返回
+            /// [`archforge_kernel::AppError::Invalid`]。
             pub fn new<S>(value: S) -> ::core::result::Result<Self, $crate::AppError>
             where
                 S: ::core::convert::Into<::std::string::String>,
@@ -71,12 +71,12 @@ macro_rules! arch_newtype {
                 }
             }
 
-            /// Borrow the inner string.
+            /// 借用内部字符串。
             pub fn as_str(&self) -> &str {
                 &self.0
             }
 
-            /// Consume into the inner `String`.
+            /// 消费并取出内部 `String`。
             pub fn into_inner(self) -> ::std::string::String {
                 self.0
             }
@@ -124,18 +124,18 @@ macro_rules! arch_newtype {
         $vis struct $name(::uuid::Uuid);
 
         impl $name {
-            /// Fresh, random v4 id.
+            /// 全新的随机 v4 id。
             pub fn new() -> Self {
                 Self(::uuid::Uuid::new_v4())
             }
 
-            /// Wrap an existing uuid.
+            /// 包装一个已有 uuid。
             #[allow(dead_code)]
             pub const fn from_uuid(u: ::uuid::Uuid) -> Self {
                 Self(u)
             }
 
-            /// Inner uuid.
+            /// 内部 uuid。
             #[allow(dead_code)]
             pub const fn as_uuid(&self) -> ::uuid::Uuid {
                 self.0
@@ -160,13 +160,13 @@ macro_rules! arch_newtype {
 mod tests {
     use crate::AppError;
 
-    // String form ----------------------------------------------------------
+    // String 形式 ----------------------------------------------------------
     arch_newtype! {
-        /// Test email: bare-minimum validation.
+        /// 测试用邮箱: 最低限度校验。
         pub struct Email(String) where |s| s.contains('@') && s.len() >= 3;
     }
 
-    // Uuid form ------------------------------------------------------------
+    // Uuid 形式 ------------------------------------------------------------
     arch_newtype! {
         pub struct OrderId(Uuid);
     }
@@ -192,7 +192,7 @@ mod tests {
         let good: Email = serde_json::from_str(r#""a@b.c""#).unwrap();
         assert_eq!(good.as_str(), "a@b.c");
 
-        // Round-trip
+        // 往返
         let json = serde_json::to_string(&good).unwrap();
         assert_eq!(json, r#""a@b.c""#);
     }

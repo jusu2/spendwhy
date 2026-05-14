@@ -1,14 +1,14 @@
-//! End-to-end demo of an ArchForge auth slice.
+//! ArchForge auth 切片的端到端示例。
 //!
-//! Choose the backend at build time via Cargo features:
+//! 在构建期通过 Cargo features 选择后端：
 //!
 //! ```text
 //! cargo run -p auth-cli --no-default-features --features memory-backend   -- demo
 //! cargo run -p auth-cli --no-default-features --features jsonfile-backend -- demo
 //! ```
 //!
-//! The business code in [`run`] is identical for both — only [`make_repo`]
-//! changes. That is the headline property the ArchForge library delivers.
+//! [`run`] 中的业务代码两种后端完全相同 —— 仅 [`make_repo`]
+//! 改变。这正是 ArchForge 库交付的核心属性。
 
 #![forbid(unsafe_code)]
 
@@ -66,8 +66,8 @@ where
     let ctx = Context::new();
     let outbox = InMemoryOutbox::new();
     let clock = SystemClock;
-    // Production preset is slow on cold runs; CLI demo uses test_fast for
-    // snappy startup. Real services should call `PasswordHasher::production()`.
+    // 生产预设在冷启动时较慢；CLI 示例用 test_fast 求
+    // 启动迅捷。真实服务应调用 `PasswordHasher::production()`。
     let hasher = PasswordHasher::test_fast();
 
     let email = Email::new("demo@archforge.dev").context("invalid demo email")?;

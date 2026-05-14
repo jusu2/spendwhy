@@ -1,31 +1,30 @@
-//! Request-scoped context propagated through every Port call.
+//! 沿每次 Port 调用传播的请求级上下文。
 //!
-//! `Context` carries identity, locale, deadline, and idempotency information
-//! across layers without resorting to thread-local or task-local globals.
-//! Adapters are expected to attach the `trace_id` to outbound calls (HTTP
-//! headers, log spans, etc.).
+//! `Context` 在各层间携带身份、locale、deadline 和幂等性信息, 不依赖
+//! thread-local 或 task-local 的全局变量。Adapter 应把 `trace_id`
+//! 附加到对外调用 (HTTP header、log span 等)。
 
 use crate::{AppError, Result, Timestamp};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-/// Distributed trace correlation id.
+/// 分布式 trace 关联 id。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct TraceId(Uuid);
 
 impl TraceId {
-    /// Fresh, random v4 trace id.
+    /// 全新的随机 v4 trace id。
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
 
-    /// Build from an existing uuid (useful at process boundaries).
+    /// 从已有 uuid 构造 (适用于进程边界)。
     pub const fn from_uuid(u: Uuid) -> Self {
         Self(u)
     }
 
-    /// Inner uuid.
+    /// 内部 uuid。
     pub const fn as_uuid(&self) -> Uuid {
         self.0
     }
@@ -44,31 +43,30 @@ impl core::fmt::Display for TraceId {
 }
 
 // ---------------------------------------------------------------------------
-// Validating newtypes (replaces the prior `pub String` bag).
+// 带校验的 newtype (替换之前的 `pub String` 大包大揽)。
 // ---------------------------------------------------------------------------
 //
-// These three previously had public `String` fields. That meant control
-// characters, empty strings, and megabyte-long payloads could quietly enter
-// the system through `Context`. We now validate at construction.
+// 这三个原本都是公开 `String` 字段。这意味着控制字符、空串、兆字节量级的
+// 字符串可以悄悄通过 `Context` 进入系统。现在改为在构造时校验。
 
 const ACTOR_ID_MAX: usize = 256;
 const IDEMPOTENCY_KEY_MIN: usize = 8;
 const IDEMPOTENCY_KEY_MAX: usize = 256;
-const LOCALE_MAX: usize = 35; // BCP-47 grammar caps tags well below this.
+const LOCALE_MAX: usize = 35; // BCP-47 语法允许的 tag 长度远低于此。
 
 fn is_printable_no_ws(s: &str) -> bool {
     !s.is_empty() && s.chars().all(|c| !c.is_control() && !c.is_whitespace())
 }
 
-/// Opaque actor (user/service) identifier.
+/// 不透明的 actor (用户/服务) 标识符。
 ///
-/// Trimmed, non-empty, ≤ 256 bytes, no control characters or whitespace.
+/// 已修剪、非空、≤ 256 字节、不含控制字符或空白。
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct ActorId(String);
 
 impl ActorId {
-    /// Construct after validation.
+    /// 校验后构造。
     pub fn new<S: Into<String>>(value: S) -> Result<Self> {
         let v = value.into();
         if v.len() > ACTOR_ID_MAX {
@@ -86,7 +84,7 @@ impl ActorId {
         Ok(Self(v))
     }
 
-    /// Borrow the inner string.
+    /// 借用内部字符串。
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -111,18 +109,17 @@ impl core::fmt::Display for ActorId {
     }
 }
 
-/// Opaque idempotency key.
+/// 不透明的幂等键。
 ///
-/// Adapters that support idempotent writes use this to de-duplicate retried
-/// requests. We require at least 8 characters of non-whitespace, non-control
-/// content — enough entropy that two unrelated callers won't collide by
-/// accident.
+/// 支持幂等写入的 adapter 用它来去重重试请求。我们要求至少 8 个
+/// 非空白、非控制字符的内容 —— 熵足够大, 两个不相关的调用方不会偶然
+/// 碰撞。
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct IdempotencyKey(String);
 
 impl IdempotencyKey {
-    /// Construct after validation.
+    /// 校验后构造。
     pub fn new<S: Into<String>>(value: S) -> Result<Self> {
         let v = value.into();
         if v.len() < IDEMPOTENCY_KEY_MIN || v.len() > IDEMPOTENCY_KEY_MAX {
@@ -141,7 +138,7 @@ impl IdempotencyKey {
         Ok(Self(v))
     }
 
-    /// Borrow the inner string.
+    /// 借用内部字符串。
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -166,17 +163,16 @@ impl core::fmt::Display for IdempotencyKey {
     }
 }
 
-/// BCP-47 locale tag (e.g. `"en-US"`, `"zh-CN"`).
+/// BCP-47 locale 标签 (如 `"en-US"`、`"zh-CN"`)。
 ///
-/// We do a syntactic check (1..=35 ASCII alphanumeric / `-`), not a full
-/// BCP-47 parse. Production code that needs strict semantics should layer
-/// `unic-langid` on top of this.
+/// 我们只做语法检查 (1..=35 个 ASCII 字母数字 / `-`), 不做完整 BCP-47
+/// 解析。需要严格语义的生产代码应在其上叠加 `unic-langid`。
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(try_from = "String", into = "String")]
 pub struct Locale(String);
 
 impl Locale {
-    /// Construct after validation.
+    /// 校验后构造。
     pub fn new<S: Into<String>>(value: S) -> Result<Self> {
         let v = value.into();
         if v.is_empty() || v.len() > LOCALE_MAX {
@@ -194,17 +190,17 @@ impl Locale {
         Ok(Self(v))
     }
 
-    /// `en-US`. Infallible because the tag is a constant.
+    /// `en-US`。tag 是常量, 不会失败。
     pub fn en_us() -> Self {
         Self("en-US".to_string())
     }
 
-    /// `zh-CN`. Infallible because the tag is a constant.
+    /// `zh-CN`。tag 是常量, 不会失败。
     pub fn zh_cn() -> Self {
         Self("zh-CN".to_string())
     }
 
-    /// Borrow the BCP-47 tag.
+    /// 借用 BCP-47 tag。
     pub fn tag(&self) -> &str {
         &self.0
     }
@@ -235,23 +231,23 @@ impl Default for Locale {
     }
 }
 
-/// Request-scoped context propagated through every Port call.
+/// 沿每次 Port 调用传播的请求级上下文。
 #[derive(Debug, Clone)]
 pub struct Context {
-    /// Distributed trace correlation id.
+    /// 分布式 trace 关联 id。
     pub trace_id: TraceId,
-    /// Acting identity, if known.
+    /// 已知时的执行身份。
     pub actor: Option<ActorId>,
-    /// Locale for error messages, formatting, etc.
+    /// 错误消息、格式化等所用的 locale。
     pub locale: Locale,
-    /// Absolute deadline; `None` means no deadline.
+    /// 绝对 deadline; `None` 表示无 deadline。
     pub deadline: Option<Timestamp>,
-    /// Optional idempotency key for retry-safe writes.
+    /// 可选的幂等键, 用于重试安全的写入。
     pub idempotency_key: Option<IdempotencyKey>,
 }
 
 impl Context {
-    /// Fresh context with a new `TraceId` and default locale.
+    /// 全新的 context, 带新 `TraceId` 和默认 locale。
     pub fn new() -> Self {
         Self {
             trace_id: TraceId::new(),
@@ -262,40 +258,40 @@ impl Context {
         }
     }
 
-    /// Convenience constructor used by tests.
+    /// 测试用便捷构造器。
     pub fn test() -> Self {
         Self::new()
     }
 
-    /// Attach a pre-validated actor.
+    /// 附加一个已校验的 actor。
     #[must_use]
     pub fn with_actor(mut self, actor: ActorId) -> Self {
         self.actor = Some(actor);
         self
     }
 
-    /// Replace locale.
+    /// 替换 locale。
     #[must_use]
     pub fn with_locale(mut self, locale: Locale) -> Self {
         self.locale = locale;
         self
     }
 
-    /// Set an absolute deadline.
+    /// 设置绝对 deadline。
     #[must_use]
     pub fn with_deadline(mut self, deadline: Timestamp) -> Self {
         self.deadline = Some(deadline);
         self
     }
 
-    /// Attach a pre-validated idempotency key.
+    /// 附加一个已校验的幂等键。
     #[must_use]
     pub fn with_idempotency(mut self, key: IdempotencyKey) -> Self {
         self.idempotency_key = Some(key);
         self
     }
 
-    /// `true` iff `deadline` has elapsed at `now`.
+    /// 当且仅当 `deadline` 在 `now` 时已过期时为 `true`。
     pub fn is_expired_at(&self, now: Timestamp) -> bool {
         match self.deadline {
             Some(d) => now.as_ms() >= d.as_ms(),
@@ -360,7 +356,7 @@ mod tests {
     #[test]
     fn locale_validates_syntactically() {
         assert!(Locale::new("").is_err());
-        assert!(Locale::new("en_US").is_err()); // underscore not allowed
+        assert!(Locale::new("en_US").is_err()); // 不允许下划线
         assert!(Locale::new("en-US").is_ok());
         assert!(Locale::new("zh-Hant-CN").is_ok());
         assert!(Locale::new("a".repeat(36)).is_err());

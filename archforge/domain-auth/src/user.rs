@@ -1,4 +1,4 @@
-//! The `User` aggregate.
+//! `User` 聚合。
 
 use archforge_contract_auth::{
     DisplayName, Email, PasswordHash, UserCreated, UserDto, UserEvent, UserId, UserPasswordSet,
@@ -6,18 +6,17 @@ use archforge_contract_auth::{
 };
 use archforge_kernel::{AppError, Result, Timestamp};
 
-/// Auth aggregate root.
+/// Auth 聚合根。
 ///
-/// Invariants:
-/// - `email`, `display_name`, `id` are always valid by construction
-///   (newtypes already enforce field-level validity).
-/// - `updated_at >= created_at` for any value returned by [`User::to_dto`].
-/// - `version` is monotonic across mutations.
-/// - Mutation only happens through methods that return a [`UserEvent`].
+/// 不变式：
+/// - `email`、`display_name`、`id` 在构造时即合法
+///   （newtype 已在字段层强制有效性）。
+/// - 对 [`User::to_dto`] 返回的任何值，`updated_at >= created_at`。
+/// - `version` 在变更中单调递增。
+/// - 仅通过返回 [`UserEvent`] 的方法进行变更。
 ///
-/// `Clone` is implemented so use cases can keep an immutable snapshot
-/// before/after a mutation; we deliberately do NOT implement `Serialize` —
-/// see invariant #2.
+/// 实现 `Clone` 是为了让 use case 可在变更前后保留不可变快照；
+/// 我们刻意不实现 `Serialize` —— 见不变式 #2。
 #[derive(Debug, Clone)]
 pub struct User {
     id: UserId,
@@ -30,11 +29,11 @@ pub struct User {
 }
 
 impl User {
-    /// Construct a brand-new `User`. Returns the aggregate together with the
-    /// `UserCreated` event that callers must publish (typically via outbox).
+    /// 构造一个全新的 `User`。返回聚合及调用方需发布的
+    /// `UserCreated` 事件（通常经由 outbox）。
     ///
-    /// `password_hash` is optional at creation; use [`Self::set_password`]
-    /// after construction to add one.
+    /// 创建时 `password_hash` 可选；可在构造后通过 [`Self::set_password`]
+    /// 添加。
     pub fn create(
         email: Email,
         display_name: DisplayName,
@@ -60,9 +59,8 @@ impl User {
         (user, event)
     }
 
-    /// Reconstitute from persistence. The DTO is already type-validated by
-    /// its newtype fields, so the only check left is a sanity timestamp
-    /// invariant.
+    /// 自持久化重建。DTO 的字段已由 newtype 完成类型校验，
+    /// 故此处仅需对时间戳不变式做完整性检查。
     pub fn rehydrate(dto: UserDto) -> Result<Self> {
         if dto.updated_at < dto.created_at {
             return Err(AppError::Invalid(format!(
@@ -89,7 +87,7 @@ impl User {
         })
     }
 
-    /// Project to a transport DTO.
+    /// 投影为传输 DTO。
     pub fn to_dto(&self) -> UserDto {
         UserDto {
             id: self.id,
@@ -103,40 +101,40 @@ impl User {
         }
     }
 
-    /// Identifier.
+    /// 标识符。
     pub fn id(&self) -> UserId {
         self.id
     }
 
-    /// Email accessor.
+    /// Email 访问器。
     pub fn email(&self) -> &Email {
         &self.email
     }
 
-    /// Display name accessor.
+    /// 显示名访问器。
     pub fn display_name(&self) -> &DisplayName {
         &self.display_name
     }
 
-    /// Current version.
+    /// 当前版本。
     pub fn version(&self) -> Version {
         self.version
     }
 
-    /// Whether a password hash is on file.
+    /// 是否已存有密码哈希。
     pub fn has_password(&self) -> bool {
         self.password_hash.is_some()
     }
 
-    /// Borrow the password hash if present (for verification by a use case).
+    /// 若存在则借出密码哈希（供 use case 验证使用）。
     pub fn password_hash(&self) -> Option<&PasswordHash> {
         self.password_hash.as_ref()
     }
 
-    /// Domain operation: rename.
+    /// 领域操作：重命名。
     ///
-    /// - `Invalid` if the new name equals the current one (no-op rejection).
-    /// - `Invalid` if `now < updated_at` (clock skew protection).
+    /// - 若新名称与当前相同则返回 `Invalid`（拒绝空操作）。
+    /// - 若 `now < updated_at` 则返回 `Invalid`（防止时钟漂移）。
     pub fn rename(&mut self, new_name: DisplayName, now: Timestamp) -> Result<UserEvent> {
         if new_name == self.display_name {
             return Err(AppError::Invalid("display_name unchanged".into()));
@@ -154,7 +152,7 @@ impl User {
         }))
     }
 
-    /// Domain operation: set or rotate password hash.
+    /// 领域操作：设置或轮换密码哈希。
     pub fn set_password(&mut self, hash: PasswordHash, now: Timestamp) -> Result<UserEvent> {
         if now < self.updated_at {
             return Err(AppError::Invalid("clock skew: now < updated_at".into()));
@@ -168,11 +166,11 @@ impl User {
         }))
     }
 
-    /// Domain operation: record a successful authentication.
+    /// 领域操作：记录一次成功的认证。
     ///
-    /// This does NOT mutate persisted state by itself — it only emits the
-    /// audit event. (Login attempts that fail are not domain events: they
-    /// belong to a security-monitoring stream.)
+    /// 该方法本身不变更持久化状态 —— 只发出审计事件。
+    ///（失败的登录尝试不属于领域事件：它们属于
+    /// 安全监控流。）
     pub fn record_authenticated(&self, now: Timestamp) -> UserEvent {
         UserEvent::PasswordVerified(UserPasswordVerified {
             id: self.id,

@@ -1,77 +1,75 @@
-//! Domain events emitted by the auth aggregate.
+//! auth 聚合产出的领域事件。
 //!
-//! Each event variant has a stable, versioned discriminator (`v` tag) that is
-//! part of the wire contract. Renames or schema breaks introduce a new
-//! variant rather than mutating an existing one — that is the only way to
-//! keep old consumers working.
+//! 每个事件变体都有稳定的、带版本的判别 (`v` tag), 是 wire 契约的一部分。
+//! 重命名或 schema 破坏只能通过引入新变体来表达, 而不能改动已有变体 ——
+//! 这是让旧消费者继续工作的唯一办法。
 
 use crate::types::{DisplayName, Email, UserId};
 use archforge_kernel::{DomainEvent, Timestamp};
 use serde::{Deserialize, Serialize};
 
-/// All domain events emitted by the auth aggregate.
+/// auth 聚合产出的所有领域事件。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(tag = "v")]
 pub enum UserEvent {
-    /// `auth.user.created.v1`.
+    /// `auth.user.created.v1`。
     #[serde(rename = "auth.user.created.v1")]
     Created(UserCreated),
-    /// `auth.user.renamed.v1`.
+    /// `auth.user.renamed.v1`。
     #[serde(rename = "auth.user.renamed.v1")]
     Renamed(UserRenamed),
-    /// `auth.user.password_set.v1`.
+    /// `auth.user.password_set.v1`。
     #[serde(rename = "auth.user.password_set.v1")]
     PasswordSet(UserPasswordSet),
-    /// `auth.user.password_verified.v1`.
+    /// `auth.user.password_verified.v1`。
     ///
-    /// Emitted on successful authentication. Failed attempts are NOT
-    /// emitted as a domain event — they belong to a security-audit stream
-    /// outside this aggregate.
+    /// 认证成功时发出。失败尝试**不**作为领域事件发出 —— 它们属于这个
+    /// 聚合之外的安全审计流。
     #[serde(rename = "auth.user.password_verified.v1")]
     PasswordVerified(UserPasswordVerified),
 }
 
-/// Payload of `auth.user.created.v1`.
+/// `auth.user.created.v1` 的 payload。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserCreated {
-    /// New user id.
+    /// 新用户 id。
     pub id: UserId,
-    /// Email at creation time.
+    /// 创建时的邮箱。
     pub email: Email,
-    /// Display name at creation time.
+    /// 创建时的展示名。
     pub display_name: DisplayName,
-    /// When it happened.
+    /// 发生时间。
     pub at: Timestamp,
 }
 
-/// Payload of `auth.user.renamed.v1`.
+/// `auth.user.renamed.v1` 的 payload。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserRenamed {
-    /// Id of the user that was renamed.
+    /// 被重命名用户的 id。
     pub id: UserId,
-    /// New display name (post-rename).
+    /// 重命名后的新展示名。
     pub display_name: DisplayName,
-    /// When it happened.
+    /// 发生时间。
     pub at: Timestamp,
 }
 
-/// Payload of `auth.user.password_set.v1`. Carries no hash — the audit log
-/// only needs to know *that* a password was set, never the value.
+/// `auth.user.password_set.v1` 的 payload。不携带 hash —— 审计日志只需
+/// 知道密码*被设置了*, 不需要知道值。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserPasswordSet {
-    /// User whose password changed.
+    /// 密码变更的用户。
     pub id: UserId,
-    /// When it happened.
+    /// 发生时间。
     pub at: Timestamp,
 }
 
-/// Payload of `auth.user.password_verified.v1`.
+/// `auth.user.password_verified.v1` 的 payload。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserPasswordVerified {
-    /// User who authenticated.
+    /// 通过认证的用户。
     pub id: UserId,
-    /// When it happened.
+    /// 发生时间。
     pub at: Timestamp,
 }
 

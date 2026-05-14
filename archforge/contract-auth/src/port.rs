@@ -1,81 +1,78 @@
-//! Port traits: read and write capabilities are split so use cases can bound
-//! on exactly the capability they need.
+//! Port trait: 读和写 capability 分开, 以便 use case 仅 bound 在它需要
+//! 的那部分上。
 //!
-//! All write operations on `UserWriter` use **optimistic concurrency control**
-//! via [`crate::Version`]: callers pass the version they expect to be current
-//! and the adapter rejects stale writes with [`AppError::Conflict`].
+//! `UserWriter` 上的所有写操作都使用**乐观并发控制 (OCC)**, 通过
+//! [`crate::Version`] 实现: 调用方传入它期望的当前版本, adapter 用
+//! [`AppError::Conflict`] 拒绝过时写入。
 
 use crate::types::{Email, PasswordHash, UserDto, UserId, Version};
 use archforge_kernel::{Context, Result};
 use async_trait::async_trait;
 
-/// Read capability over auth users.
+/// auth 用户的读 capability。
 #[async_trait]
 pub trait UserReader: Send + Sync {
-    /// Find a user by primary id.
+    /// 按主键 id 查找用户。
     ///
-    /// `Ok(None)` is **not** an error — the user simply does not exist.
-    /// Implementations must NOT return `AppError::NotFound` for missing rows.
+    /// `Ok(None)` **不是**错误 —— 用户单纯不存在。实现不得对缺失行返回
+    /// `AppError::NotFound`。
     async fn find_by_id(&self, ctx: &Context, id: &UserId) -> Result<Option<UserDto>>;
 
-    /// Find a user by email.
+    /// 按邮箱查找用户。
     ///
-    /// Same `Ok(None)` discipline as [`find_by_id`].
+    /// 与 [`find_by_id`] 同样的 `Ok(None)` 约定。
     async fn find_by_email(&self, ctx: &Context, email: &Email) -> Result<Option<UserDto>>;
 }
 
-/// Write capability over auth users with optimistic concurrency.
+/// auth 用户的写 capability, 带乐观并发。
 #[async_trait]
 pub trait UserWriter: Send + Sync {
-    /// Insert a new user. The DTO's `version` must equal [`Version::INITIAL`].
+    /// 插入新用户。DTO 的 `version` 必须等于 [`Version::INITIAL`]。
     ///
-    /// - `Ok(())` on success.
-    /// - `AppError::Conflict` if `id` or `email` already exist.
-    /// - `AppError::Invalid` if `version != Version::INITIAL`.
-    /// - `AppError::Unavailable` for transient backend errors.
+    /// - 成功返回 `Ok(())`。
+    /// - 若 `id` 或 `email` 已存在则 `AppError::Conflict`。
+    /// - 若 `version != Version::INITIAL` 则 `AppError::Invalid`。
+    /// - 后端瞬时错误返回 `AppError::Unavailable`。
     ///
-    /// Adapters honour `ctx.idempotency_key` when present: a retry with the
-    /// same key returns `Ok(())` instead of `Conflict` for the *same* DTO,
-    /// and `Conflict` for a *different* DTO.
+    /// 当 `ctx.idempotency_key` 存在时, adapter 须遵守它: 对*相同* DTO
+    /// 用同一 key 重试返回 `Ok(())` 而非 `Conflict`; 对*不同* DTO 仍返回
+    /// `Conflict`。
     async fn insert(&self, ctx: &Context, user: &UserDto) -> Result<()>;
 
-    /// Update an existing user. The caller passes the version they read
-    /// (`expected_version`); the adapter applies the write only if the
-    /// stored row's version matches.
+    /// 更新已存在的用户。调用方传入它读到的版本 (`expected_version`);
+    /// adapter 仅在存储行的版本匹配时才落库。
     ///
-    /// On success, the stored row's version becomes `user.version` (which
-    /// the caller is expected to have set to `expected_version.next()`).
+    /// 成功后, 存储行的版本变为 `user.version` (调用方应已将其设置为
+    /// `expected_version.next()`)。
     ///
-    /// - `Ok(())` on success.
-    /// - `AppError::NotFound` if `id` does not exist.
-    /// - `AppError::Conflict` if the stored version differs from
-    ///   `expected_version` (lost update prevention).
-    /// - `AppError::Conflict` if the new email collides with another user.
+    /// - 成功返回 `Ok(())`。
+    /// - `id` 不存在返回 `AppError::NotFound`。
+    /// - 存储版本与 `expected_version` 不一致返回 `AppError::Conflict`
+    ///   (防止 lost update)。
+    /// - 新邮箱与他人冲突返回 `AppError::Conflict`。
     async fn update(&self, ctx: &Context, user: &UserDto, expected_version: Version) -> Result<()>;
 
-    /// Delete a user by id, with version check.
+    /// 按 id 删除用户, 带版本检查。
     ///
-    /// - `Ok(())` on success (idempotent: deleting a missing id returns Ok).
-    /// - `AppError::Conflict` if the stored version differs from
-    ///   `expected_version`.
+    /// - 成功返回 `Ok(())` (幂等: 删除不存在的 id 也返回 Ok)。
+    /// - 存储版本与 `expected_version` 不一致返回 `AppError::Conflict`。
     async fn delete(&self, ctx: &Context, id: &UserId, expected_version: Version) -> Result<()>;
 }
 
-/// Convenience supertrait for adapters supporting both halves.
+/// 同时支持读写两半的 adapter 用的便捷 supertrait。
 pub trait UserRepository: UserReader + UserWriter {}
 impl<T: UserReader + UserWriter> UserRepository for T {}
 
-/// Password storage Port.
+/// 密码存储 Port。
 ///
-/// Split from `UserWriter` so adapters can implement it independently —
-/// e.g. a future read-only LDAP adapter can implement [`UserReader`] alone
-/// without claiming to store passwords.
+/// 与 `UserWriter` 分开, 这样 adapter 可独立实现 —— 例如未来一个只读的
+/// LDAP adapter 可只实现 [`UserReader`], 不必声称自己存密码。
 #[async_trait]
 pub trait CredentialStore: Send + Sync {
-    /// Persist (or replace) the password hash for a user.
+    /// 为用户持久化 (或替换) 密码 hash。
     ///
-    /// Returns `AppError::NotFound` if the user does not exist. Uses CAS
-    /// against `expected_version` like [`UserWriter::update`].
+    /// 用户不存在时返回 `AppError::NotFound`。像 [`UserWriter::update`]
+    /// 一样基于 `expected_version` 做 CAS。
     async fn set_password(
         &self,
         ctx: &Context,

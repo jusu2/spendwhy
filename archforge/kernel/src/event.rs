@@ -1,41 +1,36 @@
-//! Domain event primitives.
+//! 领域事件原语。
 //!
-//! `DomainEvent` is the smallest contract every aggregate-emitted fact must
-//! satisfy. `OutboxSink` is the Port adapters implement to persist or publish
-//! those facts; concrete outbox implementations (file, sqlite, kafka) live in
-//! `infra-*` crates.
+//! `DomainEvent` 是每个聚合根产出的事实必须满足的最小契约。
+//! `OutboxSink` 是 adapter 实现的 Port, 用来持久化或发布这些事实;
+//! 具体 outbox 实现 (file、sqlite、kafka) 在 `infra-*` crate 中。
 
 use crate::{Context, Result, Timestamp};
 use async_trait::async_trait;
 
-/// A fact produced by an aggregate root.
+/// 由聚合根产出的事实。
 ///
-/// Implementations are concrete `struct`s or `enum`s that live in
-/// `contract-*` crates so they can be serialised across process boundaries.
+/// 实现是具体的 `struct` 或 `enum`, 放在 `contract-*` crate 里, 以便能跨
+/// 进程边界序列化。
 pub trait DomainEvent: Send + Sync + 'static {
-    /// Stable, versioned event type identifier, e.g. `"auth.user.created.v1"`.
+    /// 稳定的、带版本的事件类型标识符, 如 `"auth.user.created.v1"`。
     ///
-    /// **Must never change** for an existing variant; introduce a new event
-    /// type for breaking schema changes.
+    /// 对已有变体**永不可变**; schema 破坏性变更要引入新的事件类型。
     fn event_type(&self) -> &'static str;
 
-    /// Aggregate root identifier this event belongs to. Used for partitioning
-    /// in the outbox and for replay routing.
+    /// 事件所属的聚合根标识符。用于 outbox 中的分区与回放路由。
     fn aggregate_id(&self) -> String;
 
-    /// When the event happened. Adapters must NOT overwrite this with their
-    /// own clock — the aggregate decided.
+    /// 事件发生的时间。Adapter 不得用自己的时钟覆盖它 —— 由聚合决定。
     fn occurred_at(&self) -> Timestamp;
 }
 
-/// Port: durable sink for domain events.
+/// Port: 领域事件的持久 sink。
 ///
-/// Implementations are expected to be at-least-once and idempotent against
-/// `(event_type, aggregate_id, occurred_at)` triples.
+/// 实现应是 at-least-once, 并对 `(event_type, aggregate_id, occurred_at)`
+/// 三元组幂等。
 #[async_trait]
 pub trait OutboxSink: Send + Sync {
-    /// Append a single event. The sink is responsible for durability before
-    /// returning `Ok`.
+    /// 追加单个事件。返回 `Ok` 前 sink 负责持久化。
     async fn append(&self, ctx: &Context, event: &dyn DomainEvent) -> Result<()>;
 }
 
@@ -63,9 +58,9 @@ mod tests {
 
     #[test]
     fn domain_event_is_dyn_safe() {
-        // Compile-time check: `&dyn DomainEvent` must be usable in trait
-        // objects (e.g. `OutboxSink::append(&self, _, &dyn DomainEvent)`).
-        // If this signature ever requires `Sized`, the kernel breaks.
+        // 编译期检查: `&dyn DomainEvent` 必须能用在 trait object 中
+        // (如 `OutboxSink::append(&self, _, &dyn DomainEvent)`)。
+        // 一旦这个签名要求 `Sized`, kernel 就坏了。
         fn _accept_dyn(evt: &dyn DomainEvent) -> &'static str {
             evt.event_type()
         }
@@ -79,7 +74,7 @@ mod tests {
         assert_eq!(e.occurred_at().as_ms(), 123);
     }
 
-    // Compile-time check: AppError flows through.
+    // 编译期检查: AppError 类型流通正常。
     #[allow(dead_code)]
     fn _err_type_smoke() -> Result<()> {
         Err(AppError::Internal("x".into()))

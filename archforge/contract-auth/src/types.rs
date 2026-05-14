@@ -1,18 +1,16 @@
-//! Value objects and the [`UserDto`] transport shape.
+//! 值对象与 [`UserDto`] 传输形状。
 
 use archforge_kernel::{arch_newtype, AppError, Result, Timestamp};
 use serde::{Deserialize, Serialize};
 
 arch_newtype! {
-    /// User identifier. Random v4 uuid, opaque outside the auth context.
+    /// 用户标识符。随机 v4 uuid, auth 上下文外部不透明。
     pub struct UserId(Uuid);
 }
 
 arch_newtype! {
-    /// RFC-5321 simplified email. The validator is intentionally narrow —
-    /// "looks like an email" rather than "is a deliverable inbox". Production
-    /// systems should still call out to a deliverability provider before
-    /// trusting an address.
+    /// RFC-5321 简化版邮箱。校验器刻意收紧 —— "看起来像邮箱"而非"是
+    /// 可投递的邮箱"。生产系统在信任地址前仍应调可达性服务再验一次。
     pub struct Email(String) where |s|
         s.len() >= 3
         && s.len() <= 254
@@ -21,39 +19,37 @@ arch_newtype! {
 }
 
 arch_newtype! {
-    /// 1..=128 trimmed Unicode code points. Empty or whitespace-only names
-    /// are rejected.
+    /// 修剪后 1..=128 个 Unicode code point。空或纯空白的名字会被拒绝。
     pub struct DisplayName(String) where |s| {
         let trimmed = s.trim();
         !trimmed.is_empty() && trimmed.chars().count() <= 128
     };
 }
 
-/// Aggregate version, used for optimistic concurrency control (CAS).
+/// 聚合版本, 用于乐观并发控制 (CAS)。
 ///
-/// Every successful write bumps this monotonically. `update` operations
-/// must echo the version they read to the Port so the adapter can reject
-/// stale writes with [`AppError::Conflict`].
+/// 每次成功写入都会单调递增。`update` 操作必须把读到的版本回传给 Port,
+/// 这样 adapter 才能用 [`AppError::Conflict`] 拒绝过时写入。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Version(u64);
 
 impl Version {
-    /// Initial version assigned to a freshly-created aggregate.
+    /// 新建聚合的初始版本。
     pub const INITIAL: Self = Self(1);
 
-    /// Construct from a raw `u64` (used by adapters when re-hydrating).
+    /// 从原始 `u64` 构造 (adapter 再水化时使用)。
     pub const fn from_u64(v: u64) -> Self {
         Self(v)
     }
 
-    /// Inner value.
+    /// 内部值。
     pub const fn as_u64(&self) -> u64 {
         self.0
     }
 
-    /// Increment, saturating at `u64::MAX`. The saturation is a fail-safe;
-    /// in practice 2^64 versions per aggregate is unreachable.
+    /// 递增, 在 `u64::MAX` 处饱和。饱和是一种 fail-safe; 实际中每聚合
+    /// 2^64 个版本不可能触达。
     pub fn next(self) -> Self {
         Self(self.0.saturating_add(1))
     }
@@ -71,20 +67,19 @@ impl core::fmt::Display for Version {
     }
 }
 
-/// Argon2id password hash in PHC string format.
+/// PHC 字符串格式的 Argon2id 密码 hash。
 ///
-/// Wraps the verifier output of `argon2::PasswordHasher::hash_password`. The
-/// inner string contains all parameters (salt, m, t, p) so a verifier never
-/// needs side-channel knowledge.
+/// 封装 `argon2::PasswordHasher::hash_password` 的 verifier 输出。内部
+/// 字符串包含全部参数 (salt、m、t、p), 因此 verifier 不需要任何旁路信息。
 ///
-/// `Display` redacts the hash so it cannot accidentally appear in logs.
+/// `Display` 会对 hash 做脱敏, 避免它意外出现在日志里。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct PasswordHash(String);
 
 impl PasswordHash {
-    /// Wrap a pre-computed PHC string. Returns `Invalid` if the prefix does
-    /// not look like a recognised PHC hash.
+    /// 包装一个预先算好的 PHC 字符串。前缀不像可识别的 PHC hash 时返回
+    /// `Invalid`。
     pub fn from_phc(phc: impl Into<String>) -> Result<Self> {
         let s = phc.into();
         if !s.starts_with("$argon2") {
@@ -100,43 +95,43 @@ impl PasswordHash {
         Ok(Self(s))
     }
 
-    /// Borrow the PHC string.
+    /// 借用 PHC 字符串。
     pub fn as_phc(&self) -> &str {
         &self.0
     }
 }
 
-// `Display` is intentionally redacted. To inspect the actual PHC string,
-// callers use `as_phc()` — which is grep-able and PR-reviewable.
+// `Display` 刻意脱敏。要查看真正的 PHC 字符串, 调用方应使用 `as_phc()` ——
+// 这是可 grep、可 PR review 的。
 impl core::fmt::Display for PasswordHash {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("<redacted-password-hash>")
     }
 }
 
-/// Auth-side projection of a user. **The single shape allowed to cross a
-/// Port boundary** — `domain-auth::User` stays in its own crate.
+/// 用户的 auth 侧投影。**唯一允许跨 Port 边界的形状** ——
+/// `domain-auth::User` 留在它自己的 crate 内。
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserDto {
-    /// Unique identifier.
+    /// 唯一标识符。
     pub id: UserId,
-    /// Email (acts as a natural secondary key, must be unique).
+    /// 邮箱 (作为天然次键, 必须唯一)。
     pub email: Email,
-    /// Human-facing name.
+    /// 面向人的展示名。
     pub display_name: DisplayName,
-    /// Argon2id password hash. `None` for users registered before
-    /// password support landed (a one-shot migration path).
+    /// Argon2id 密码 hash。在密码支持上线前注册的用户为 `None`
+    /// (一次性迁移路径)。
     #[serde(default)]
     pub password_hash: Option<PasswordHash>,
-    /// When the user was first created.
+    /// 用户首次创建时间。
     pub created_at: Timestamp,
-    /// When the user was last mutated.
+    /// 用户最近一次变更时间。
     pub updated_at: Timestamp,
-    /// Aggregate version for optimistic concurrency.
+    /// 乐观并发用的聚合版本。
     #[serde(default)]
     pub version: Version,
-    /// Schema version. Adapters MUST emit `1` for this layout. Future
-    /// breaking changes introduce a new DTO type, not a new variant.
+    /// Schema 版本。Adapter 对当前布局必须输出 `1`。未来破坏性变更
+    /// 引入新的 DTO 类型, 而不是新的变体值。
     #[serde(default = "default_schema_v1")]
     pub schema_version: u16,
 }
@@ -229,8 +224,8 @@ mod tests {
 
     #[test]
     fn user_dto_back_compat_default_version() {
-        // Older DTOs without `version`/`password_hash` still parse with
-        // sensible defaults — that is the point of `#[serde(default)]`.
+        // 旧 DTO 没有 `version`/`password_hash` 字段仍能用合理的默认值
+        // 解析 —— 这正是 `#[serde(default)]` 的意义。
         let json = r#"{
             "id": "00000000-0000-0000-0000-000000000001",
             "email": "a@b",

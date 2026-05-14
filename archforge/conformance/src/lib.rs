@@ -1,18 +1,17 @@
-//! # Port conformance harness
+//! # Port 一致性装置
 //!
-//! Single source of truth for **what an auth `UserRepository` must do**.
-//! Every adapter passes the same suite — the LSP test, mechanised.
+//! 对 “auth `UserRepository` 必须做什么” 的单一权威。
+//! 每个适配器都跑同一套用例 —— LSP 测试机械化。
 //!
-//! Two entry points:
-//! - [`user_repo_conformance`] — sequential properties (insert/find/update
-//!   semantics, version CAS, email-index swap, idempotent delete, etc.).
-//! - [`user_repo_concurrency_conformance`] — racy concurrency properties
-//!   (parallel inserts of the same email or id must elect exactly one
-//!   winner, never tear state).
+//! 两个入口：
+//! - [`user_repo_conformance`] —— 顺序性质（insert/find/update
+//!   语义、版本 CAS、email 索引交换、幂等删除等）。
+//! - [`user_repo_concurrency_conformance`] —— 并发性质
+//!   （对同一 email 或同一 id 的并行插入必须恰好选出一个胜者，
+//!   绝不撕裂状态）。
 //!
-//! Both take a *factory* closure: each property gets a fresh adapter so
-//! results are independent and the construction path is exercised
-//! repeatedly.
+//! 二者均接受一个 *工厂* 闭包：每条性质获得一个全新的适配器，
+//! 使结果相互独立且构造路径被反复执行。
 
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, missing_docs)]
@@ -29,11 +28,11 @@ use archforge_kernel::{AppError, Context, Timestamp};
 use std::sync::Arc;
 
 // ---------------------------------------------------------------------------
-// Sequential conformance
+// 顺序一致性
 // ---------------------------------------------------------------------------
 
-/// Run the full sequential property suite against the adapter produced by
-/// `make`. Panics on the first violation.
+/// 针对 `make` 产出的适配器，运行完整的顺序性质套件。
+/// 一旦违例即 panic。
 pub async fn user_repo_conformance<R, F, Fut>(make: F)
 where
     R: UserReader + UserWriter + Send + Sync,
@@ -145,8 +144,8 @@ async fn find_unknown_email_is_ok_none<R: UserReader + UserWriter>(repo: &R) {
 async fn update_missing_is_not_found<R: UserReader + UserWriter>(repo: &R) {
     let ctx = Context::test();
     let mut u = sample("not@there", "X", 5);
-    // Bump to a non-INITIAL version so we can call update; the adapter must
-    // reject because the row isn't there at all.
+    // 提升到非 INITIAL 版本以便调用 update；适配器必须
+    // 因为该行根本不存在而拒绝。
     u.version = Version::INITIAL.next();
     let err = repo
         .update(&ctx, &u, Version::INITIAL)
@@ -240,17 +239,17 @@ async fn delete_rejects_stale_version<R: UserReader + UserWriter>(repo: &R) {
 }
 
 // ---------------------------------------------------------------------------
-// Concurrency conformance
+// 并发一致性
 // ---------------------------------------------------------------------------
 
-/// Property: under N concurrent inserts of the same email (different ids),
-/// exactly one must win and N-1 must observe `Conflict`. No torn state.
+/// 性质：对同一 email（id 各异）的 N 次并发插入，
+/// 必须恰好有一个胜者，其余 N-1 个观察到 `Conflict`。不撕裂状态。
 ///
-/// Property: under N concurrent inserts of the same id (different emails),
-/// exactly one must win and N-1 must observe `Conflict`.
+/// 性质：对同一 id（email 各异）的 N 次并发插入，
+/// 必须恰好有一个胜者，其余 N-1 个观察到 `Conflict`。
 ///
-/// `R` must be cheaply cloneable into multiple tasks; for in-memory adapters
-/// this is `Arc<DashMap>` clones. We require `R: Clone + 'static` to spawn.
+/// `R` 必须能廉价克隆到多个任务中；对内存适配器
+/// 这是 `Arc<DashMap>` 克隆。为 spawn 我们要求 `R: Clone + 'static`。
 pub async fn user_repo_concurrency_conformance<R, F, Fut>(make: F)
 where
     R: UserReader + UserWriter + Clone + Send + Sync + 'static,

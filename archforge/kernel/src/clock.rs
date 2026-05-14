@@ -1,22 +1,21 @@
-//! Clock — a Port over wall time.
+//! Clock —— wall time 之上的 Port。
 //!
-//! Time is an external dependency. Calling `SystemTime::now()` deep inside
-//! application code defeats determinism, makes tests rely on real sleeps,
-//! and ties business logic to a particular runtime. ArchForge therefore
-//! treats time as a Port: use cases bound on `&dyn Clock`, adapters supply
-//! either `SystemClock` (production) or `FixedClock` (tests).
+//! 时间是外部依赖。在应用代码深处直接调用 `SystemTime::now()` 会破坏
+//! 确定性, 让测试依赖真实 sleep, 还会把业务逻辑绑死在特定 runtime 上。
+//! 因此 ArchForge 把时间视为 Port: use case bound 在 `&dyn Clock` 上,
+//! adapter 在生产中提供 `SystemClock`、在测试中提供 `FixedClock`。
 
 use crate::Timestamp;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 
-/// Read-only clock Port.
+/// 只读时钟 Port。
 pub trait Clock: Send + Sync {
-    /// Current wall-clock instant.
+    /// 当前 wall-clock 瞬时。
     fn now(&self) -> Timestamp;
 }
 
-/// Production clock: wraps `std::time::SystemTime`.
+/// 生产时钟: 封装 `std::time::SystemTime`。
 #[derive(Debug, Default, Clone, Copy)]
 pub struct SystemClock;
 
@@ -26,27 +25,25 @@ impl Clock for SystemClock {
     }
 }
 
-/// Manual clock for tests. Monotonic by construction (calls to [`Self::set`]
-/// that move backwards in time are rejected).
+/// 测试用手动时钟。构造保证单调 (对 [`Self::set`] 的回拨调用会被拒绝)。
 #[derive(Debug, Clone)]
 pub struct FixedClock(Arc<AtomicI64>);
 
 impl FixedClock {
-    /// New clock starting at `start`.
+    /// 起点为 `start` 的新时钟。
     pub fn new(start: Timestamp) -> Self {
         Self(Arc::new(AtomicI64::new(start.as_ms())))
     }
 
-    /// Advance the clock by `ms` milliseconds.
+    /// 将时钟推进 `ms` 毫秒。
     pub fn advance_ms(&self, ms: i64) {
-        // `fetch_add` is monotonic by definition because callers can only
-        // hand us positive deltas (we don't bother enforcing this — a
-        // negative delta is a test bug, not a runtime concern).
+        // `fetch_add` 按定义就是单调的, 因为调用方只能传正 delta
+        // (我们不强校验 —— 负 delta 是测试 bug, 不是运行时关心的问题)。
         self.0.fetch_add(ms, Ordering::Relaxed);
     }
 
-    /// Set absolute time. Panics in debug builds if the new value moves
-    /// backwards (clock skew is a contract violation in tests).
+    /// 设置绝对时间。debug 构建下若新值向后倒退则 panic
+    /// (测试中时钟回拨属于契约违反)。
     pub fn set(&self, t: Timestamp) {
         let prev = self.0.swap(t.as_ms(), Ordering::Relaxed);
         debug_assert!(
@@ -83,7 +80,7 @@ mod tests {
 
     #[test]
     fn clock_is_object_safe() {
-        // Compile-time check: Clock must be usable as `&dyn Clock`.
+        // 编译期检查: Clock 必须能作为 `&dyn Clock` 使用。
         fn _accept(c: &dyn Clock) -> Timestamp {
             c.now()
         }

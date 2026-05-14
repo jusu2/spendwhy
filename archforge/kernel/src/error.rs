@@ -1,57 +1,54 @@
-//! Unified, narrow, business-semantic error type.
+//! 统一的、收敛的、业务语义化的错误类型。
 //!
-//! Invariant #4 of ArchForge: every Port error variant describes a *business*
-//! condition, not an underlying technology. Adapters MUST convert their
-//! native errors (`sqlx::Error`, `std::io::Error`, etc.) into `AppError`
-//! before crossing a Port boundary.
+//! ArchForge 不变量 #4: 每个 Port 错误变体描述的是*业务*状况, 不是底层
+//! 技术。Adapter 必须在跨越 Port 边界前, 把自己原生的错误 (`sqlx::Error`、
+//! `std::io::Error` 等) 转成 `AppError`。
 //!
-//! `AppError` is intentionally `Serialize` only — never `Deserialize`. An
-//! error type that round-trips through JSON becomes an attack surface: a
-//! peer can fabricate `Internal("…")` to coerce upstream branch behaviour.
-//! If you need to ship error metadata across a wire, define a separate
-//! `WireError` DTO in the relevant `contract-*` crate.
+//! `AppError` 刻意只 `Serialize` —— 从不 `Deserialize`。能经 JSON 往返的
+//! 错误类型本身就是攻击面: 对端可以伪造 `Internal("…")` 来诱导上游分支
+//! 行为。如果需要把错误元数据走线传输, 在相应 `contract-*` crate 里另外
+//! 定义 `WireError` DTO。
 
 use serde::Serialize;
 use thiserror::Error;
 
-/// Unified application error.
+/// 统一的应用错误。
 ///
-/// `#[non_exhaustive]` is mandatory — adding a variant must not break
-/// downstream `match` arms.
+/// `#[non_exhaustive]` 是强制的 —— 新增变体不应破坏下游 `match` 分支。
 #[non_exhaustive]
 #[derive(Debug, Error, Clone, Serialize, PartialEq, Eq)]
 #[serde(tag = "kind", content = "detail")]
 pub enum AppError {
-    /// Resource does not exist.
+    /// 资源不存在。
     #[error("not found: {0}")]
     NotFound(String),
 
-    /// State conflict (duplicate key, optimistic concurrency, etc.).
+    /// 状态冲突 (主键重复、乐观并发等)。
     #[error("conflict: {0}")]
     Conflict(String),
 
-    /// Input violates a domain invariant.
+    /// 输入违反领域不变量。
     #[error("invalid: {0}")]
     Invalid(String),
 
-    /// External dependency is temporarily unavailable; retry may succeed.
+    /// 外部依赖暂时不可用; 重试可能成功。
     #[error("unavailable: {0}")]
     Unavailable(String),
 
-    /// Caller lacks permission to perform the operation.
+    /// 调用方没有执行该操作的权限。
     #[error("forbidden: {0}")]
     Forbidden(String),
 
-    /// `Context::deadline` elapsed before the operation completed.
+    /// 操作完成前 `Context::deadline` 已过。
     #[error("deadline exceeded")]
     DeadlineExceeded,
 
-    /// Unrecoverable internal error. Should be rare and always logged.
+    /// 不可恢复的内部错误。应少见且总是记日志。
     #[error("internal: {0}")]
     Internal(String),
 }
 
-/// Convenience alias used across the workspace.
+/// workspace 通用的便捷别名。
 pub type Result<T> = core::result::Result<T, AppError>;
 
 #[cfg(test)]
@@ -74,20 +71,17 @@ mod tests {
         assert_eq!(AppError::DeadlineExceeded.to_string(), "deadline exceeded");
     }
 
-    // Compile-time guard: AppError must remain non-Deserialize. We use a
-    // negative-impl probe via `Option`'s blanket impls — trait_assertions in
-    // the form of `static_assertions::assert_not_impl_any!` would be
-    // cleaner, but we don't want the dep. Instead, anyone who re-adds
-    // `Deserialize` to the derive list breaks the doc-comment contract on
-    // the type, and the JSON below would deserialize into AppError via
-    // serde_json::from_str — which currently fails to compile.
+    // 编译期守卫: AppError 必须始终不实现 Deserialize。我们本可以用
+    // `static_assertions::assert_not_impl_any!` 做负向 impl 探测更干净,
+    // 但不想引入这个依赖。改为: 谁再把 `Deserialize` 加回 derive 列表,
+    // 谁就破坏了类型上文档注释的契约, 而下面那段 JSON 也会经由
+    // serde_json::from_str 反序列化到 AppError —— 它目前编译就过不去。
     #[test]
     fn app_error_serializes_but_does_not_deserialize() {
         let s = serde_json::to_string(&AppError::NotFound("x".into())).unwrap();
         assert!(s.contains("NotFound"));
-        // The next line is intentionally commented: enabling it must fail to
-        // compile while AppError lacks `Deserialize`. Treat it as executable
-        // documentation of the invariant.
+        // 下面这一行刻意注释: 启用它必须在 AppError 没有 `Deserialize`
+        // 时编译失败。把它当作该不变量的可执行文档。
         // let _: AppError = serde_json::from_str(&s).unwrap();
     }
 }

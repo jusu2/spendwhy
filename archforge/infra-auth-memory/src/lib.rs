@@ -1,14 +1,14 @@
-//! # In-memory auth adapter
+//! # 内存 auth 适配器
 //!
-//! `DashMap`-backed implementation of `UserReader + UserWriter +
-//! CredentialStore`, plus an in-process [`OutboxSink`].
+//! 基于 `DashMap` 的 `UserReader + UserWriter +
+//! CredentialStore` 实现，外加一个进程内 [`OutboxSink`]。
 //!
-//! Atomicity: insert/update/delete use [`DashMap::entry`] so the
-//! check-then-write pair is a single critical section. Concurrent attempts
-//! to insert the same email or update the same id therefore see one
-//! winner and one [`AppError::Conflict`], never a torn state.
+//! 原子性：insert/update/delete 使用 [`DashMap::entry`]，将
+//! check-then-write 配对收敛为单个临界区。对同一 email 或同一 id
+//! 的并发插入因此见到唯一胜者与若干
+//! [`AppError::Conflict`]，绝不出现撕裂状态。
 //!
-//! Capability markers: [`Writable`] and [`BulkLoadable`].
+//! 能力标记：[`Writable`] 与 [`BulkLoadable`]。
 
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, missing_docs)]
@@ -25,7 +25,7 @@ use async_trait::async_trait;
 use dashmap::DashMap;
 use std::sync::{Arc, Mutex};
 
-/// In-memory auth repository.
+/// 内存 auth 仓库。
 #[derive(Clone, Default)]
 pub struct InMemoryUserRepo {
     by_id: Arc<DashMap<UserId, UserDto>>,
@@ -33,17 +33,17 @@ pub struct InMemoryUserRepo {
 }
 
 impl InMemoryUserRepo {
-    /// Fresh, empty repository.
+    /// 全新、空的仓库。
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Number of stored users (mostly for tests/diagnostics).
+    /// 存储的用户数（主要用于测试/诊断）。
     pub fn len(&self) -> usize {
         self.by_id.len()
     }
 
-    /// `true` iff no users are stored.
+    /// 当且仅当没有存储任何用户时为 `true`。
     pub fn is_empty(&self) -> bool {
         self.by_id.is_empty()
     }
@@ -77,24 +77,24 @@ impl UserWriter for InMemoryUserRepo {
             )));
         }
 
-        // Reserve email first via `entry` — a single critical section that
-        // both checks for presence AND inserts. Prevents the
-        // contains_key + insert TOCTOU.
+        // 先通过 `entry` 占住 email —— 同一临界区内
+        // 既检查存在性又插入。避免 contains_key + insert 的
+        // TOCTOU。
         use dashmap::mapref::entry::Entry;
         let email_entry = self.by_email.entry(user.email.clone());
         if matches!(email_entry, Entry::Occupied(_)) {
             return Err(AppError::Conflict(format!("email exists: {}", user.email)));
         }
 
-        // Now reserve the id slot.
+        // 再占住 id 槽位。
         let id_entry = self.by_id.entry(user.id);
         if matches!(id_entry, Entry::Occupied(_)) {
-            // We have NOT yet inserted the email — releasing `email_entry`
-            // is a no-op because we only borrowed the vacant slot.
+            // 此时尚未插入 email —— 释放 `email_entry`
+            // 是空操作，因为我们只借用了空闲槽位。
             return Err(AppError::Conflict(format!("id exists: {}", user.id)));
         }
 
-        // Both slots vacant — commit.
+        // 两个槽位都空闲 —— 提交。
         email_entry.insert_entry(user.id);
         id_entry.insert_entry(user.clone());
         Ok(())
@@ -106,7 +106,7 @@ impl UserWriter for InMemoryUserRepo {
         user: &UserDto,
         expected_version: Version,
     ) -> Result<()> {
-        // Hold the `entry` to the id row for the entire critical section.
+        // 在整个临界区持有 id 行的 `entry`。
         use dashmap::mapref::entry::Entry;
         match self.by_id.entry(user.id) {
             Entry::Vacant(_) => Err(AppError::NotFound(format!("user {}", user.id))),
@@ -126,7 +126,7 @@ impl UserWriter for InMemoryUserRepo {
                 }
 
                 if existing.email != user.email {
-                    // Reserve the new email slot atomically before swapping.
+                    // 先原子地预订新 email 槽位再交换。
                     match self.by_email.entry(user.email.clone()) {
                         Entry::Occupied(holder) if *holder.get() != user.id => {
                             return Err(AppError::Conflict(format!(
@@ -135,7 +135,7 @@ impl UserWriter for InMemoryUserRepo {
                             )));
                         }
                         Entry::Occupied(_) => {
-                            // Same id (unreachable in practice but harmless).
+                            // 同一 id（实际不可达，但无害）。
                         }
                         Entry::Vacant(slot) => {
                             slot.insert_entry(user.id);
@@ -152,7 +152,7 @@ impl UserWriter for InMemoryUserRepo {
     async fn delete(&self, _ctx: &Context, id: &UserId, expected_version: Version) -> Result<()> {
         use dashmap::mapref::entry::Entry;
         match self.by_id.entry(*id) {
-            Entry::Vacant(_) => Ok(()), // idempotent delete
+            Entry::Vacant(_) => Ok(()), // 幂等删除
             Entry::Occupied(slot) => {
                 if slot.get().version != expected_version {
                     return Err(AppError::Conflict(format!(
@@ -203,37 +203,37 @@ impl CredentialStore for InMemoryUserRepo {
 }
 
 // ---------------------------------------------------------------------------
-// In-memory outbox.
+// 内存 outbox。
 // ---------------------------------------------------------------------------
 
-/// In-memory implementation of [`OutboxSink`].
+/// [`OutboxSink`] 的内存实现。
 ///
-/// Records each appended event in a `Vec` for inspection by tests. Suitable
-/// for unit tests; production deployments should use a durable outbox
-/// (sqlite/kafka/rabbit).
+/// 将每个追加的事件记录在 `Vec` 中供测试检查。适用于
+/// 单元测试；生产部署应使用持久化 outbox
+///（sqlite/kafka/rabbit）。
 #[derive(Clone, Default)]
 pub struct InMemoryOutbox {
     inner: Arc<Mutex<Vec<RecordedEvent>>>,
 }
 
-/// Snapshot of a recorded event.
+/// 已记录事件的快照。
 #[derive(Debug, Clone)]
 pub struct RecordedEvent {
-    /// Stable type identifier.
+    /// 稳定的类型标识。
     pub event_type: &'static str,
-    /// Aggregate identifier.
+    /// 聚合标识符。
     pub aggregate_id: String,
-    /// Wall-clock time the aggregate said this happened.
+    /// 聚合声明该事件发生的挂钟时间。
     pub occurred_at_ms: i64,
 }
 
 impl InMemoryOutbox {
-    /// Empty outbox.
+    /// 空 outbox。
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Snapshot of all recorded events.
+    /// 所有已记录事件的快照。
     pub fn snapshot(&self) -> Vec<RecordedEvent> {
         self.inner.lock().expect("outbox poisoned").clone()
     }
@@ -252,10 +252,10 @@ impl OutboxSink for InMemoryOutbox {
     }
 }
 
-/// Re-export the event type so external test harnesses can assert on the
-/// event variants without pulling in the contract crate explicitly.
+/// 重新导出事件类型，便于外部测试装置在不显式引入
+/// contract crate 的情况下断言事件变体。
 pub use archforge_contract_auth::UserEvent as ReExportedUserEvent;
-// Suppress unused-import warning when the re-export isn't pulled.
+// 当重新导出未被使用时，抑制 unused-import 警告。
 #[allow(dead_code)]
 fn _force_user_event_in_scope(_e: &UserEvent) {}
 

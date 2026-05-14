@@ -1,27 +1,24 @@
-//! Opaque, serialisable timestamp.
+//! 不透明、可序列化的时间戳。
 //!
-//! ArchForge deliberately does **not** leak `std::time::SystemTime` or
-//! `chrono`/`time` types across Port boundaries. This keeps contracts stable
-//! when the underlying time library changes, and lets DTOs round-trip through
-//! JSON/protobuf without ad-hoc encoders.
+//! ArchForge 刻意**不**让 `std::time::SystemTime` 或 `chrono`/`time`
+//! 类型跨越 Port 边界。这样底层时间库变更时契约保持稳定, 也让 DTO 能
+//! 透明地经 JSON/protobuf 往返, 无需特例编码器。
 //!
-//! `Timestamp::now_from_system()` is the *only* place in the kernel that
-//! touches `std::time`. Application code should depend on
-//! [`crate::Clock`] instead.
+//! `Timestamp::now_from_system()` 是 kernel 中*唯一*接触 `std::time`
+//! 的地方。应用代码应改为依赖 [`crate::Clock`]。
 
 use serde::{Deserialize, Serialize};
 
-/// Milliseconds since the Unix epoch (1970-01-01T00:00:00Z).
+/// 自 Unix epoch (1970-01-01T00:00:00Z) 起的毫秒数。
 ///
-/// Wraps `i64`; supports negative values for historical timestamps.
+/// 封装 `i64`; 支持负值以表示历史时间戳。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Timestamp(i64);
 
 impl Timestamp {
-    /// **Internal** — used by [`crate::SystemClock`]. Application code must
-    /// route through `&dyn Clock` instead so that tests can inject a
-    /// [`crate::FixedClock`].
+    /// **内部使用** — 供 [`crate::SystemClock`] 调用。应用代码必须改走
+    /// `&dyn Clock` 路径, 这样测试才能注入 [`crate::FixedClock`]。
     pub(crate) fn now_from_system() -> Self {
         let ms = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -30,17 +27,17 @@ impl Timestamp {
         Self(ms)
     }
 
-    /// Build from explicit millis. `const`-friendly for tests and fixtures.
+    /// 用显式毫秒构造。对测试和 fixture 友好的 `const`。
     pub const fn from_ms(ms: i64) -> Self {
         Self(ms)
     }
 
-    /// Inner millis.
+    /// 内部毫秒值。
     pub const fn as_ms(&self) -> i64 {
         self.0
     }
 
-    /// Saturating addition in milliseconds.
+    /// 以毫秒做饱和加法。
     pub const fn saturating_add_ms(self, ms: i64) -> Self {
         Self(self.0.saturating_add(ms))
     }

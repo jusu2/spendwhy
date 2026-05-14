@@ -1,9 +1,8 @@
-//! Capability marker traits.
+//! Capability 标记 trait。
 //!
-//! Zero-overhead markers that let *use cases* express which capabilities an
-//! adapter must provide. The point is to push correctness into the type
-//! system: a use case that requires bulk loading cannot be accidentally
-//! wired to an adapter that does not support it.
+//! 零开销的标记, 让 *use case* 声明 adapter 必须提供哪些 capability。
+//! 目的是把正确性推进类型系统: 需要批量加载的 use case 不可能被错配
+//! 到不支持它的 adapter 上。
 //!
 //! ```ignore
 //! pub async fn import_users<R>(repo: &R, ctx: &Context, users: Vec<UserDto>) -> Result<usize>
@@ -11,47 +10,45 @@
 //!     R: UserWriter + BulkLoadable,
 //! { /* ... */ }
 //!
-//! // Adapter declares the capability:
+//! // Adapter 声明该 capability:
 //! impl BulkLoadable for SqliteUserRepo {}
 //!
-//! // The InMemory adapter does NOT impl BulkLoadable, so:
+//! // InMemory adapter 没有实现 BulkLoadable, 所以:
 //! //    import_users(&memory_repo, &ctx, vec![...]).await
-//! // fails to compile — the type system rejects miswiring.
+//! // 编译失败 —— 类型系统拒绝错配。
 //! ```
 //!
-//! These markers carry no methods on purpose: the **business** capability
-//! lives in the Port traits in `contract-*` crates; the marker simply
-//! indicates that an adapter has opted into the relevant performance /
-//! semantic guarantees (transactional, batchable, streamable, …). The
-//! consequence is that adding a marker is a one-line, non-breaking change.
+//! 这些标记刻意不带方法: **业务** capability 在 `contract-*` crate
+//! 的 Port trait 中定义; 标记只表明 adapter 选择性地承担了相应的性能 /
+//! 语义保证 (事务、批量、流式、…)。后果是: 新增一个标记是一行的、
+//! 非破坏性的改动。
 
-/// Adapter supports read operations only.
+/// Adapter 仅支持读操作。
 pub trait ReadOnly {}
 
-/// Adapter supports state-mutating writes.
+/// Adapter 支持状态变更写入。
 pub trait Writable {}
 
-/// Adapter exposes a transactional unit of work over multiple operations.
+/// Adapter 对多次操作暴露事务性工作单元。
 ///
-/// Bound on this when a use case needs all-or-nothing semantics across
-/// several Port calls.
+/// 当 use case 需要跨多次 Port 调用的 all-or-nothing 语义时 bound 在它上面。
 pub trait Transactional {}
 
-/// Adapter can accept large batches more efficiently than per-row writes.
+/// Adapter 能比逐行写入更高效地接收大批量。
 ///
-/// Bound on this for `import_*` / `bulk_*` use cases.
+/// `import_*` / `bulk_*` use case bound 在它上面。
 pub trait BulkLoadable {}
 
-/// Adapter can deliver events as a long-running stream rather than polling.
+/// Adapter 能以长连接流而非轮询的方式投递事件。
 ///
-/// Bound on this for projector / read-model maintenance use cases.
+/// projector / 读模型维护类 use case bound 在它上面。
 pub trait Streamable {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // Compile-time check: the markers can be used as super-trait bounds.
+    // 编译期检查: 这些标记可作为 super-trait bound 使用。
     fn _accepts_writable<T: Writable>(_: &T) {}
     fn _accepts_bulk<T: Writable + BulkLoadable>(_: &T) {}
 
