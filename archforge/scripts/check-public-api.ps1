@@ -1,30 +1,27 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Public-API stability gate for the archforge workspace.
+    archforge workspace 的公开 API 稳定性闸门。
 
 .DESCRIPTION
-    For every crate in $TrackedCrates, regenerates the cargo-public-api
-    snapshot and diffs it against the checked-in baseline at
-    <crate>/.public-api/api.txt.
+    对 $TrackedCrates 里的每个 crate, 重新生成 cargo-public-api 快照, 然后跟
+    仓库里 <crate>/.public-api/api.txt 的基线对比。
 
-    Outcomes:
-      - Baseline file missing:   FAIL with bootstrap instructions.
-      - Baseline matches:        PASS.
-      - Baseline differs:        FAIL and print the unified diff.
+    结果:
+      - 基线文件缺失:        FAIL, 打印引导命令。
+      - 基线与现状一致:      PASS。
+      - 基线与现状不一致:    FAIL, 输出 unified diff。
 
-    Run with -Update to overwrite the baselines (use during an intentional
-    API change; commit the diff in the same PR that ships the change).
+    带 -Update 运行会覆盖基线 (在你**有意**调整公开 API 时用; 务必把 diff
+    跟那次修改放在同一个 PR 里提交)。
 
 .NOTES
-    cargo-public-api is installed in CI via `cargo install --locked
-    cargo-public-api`. Locally on Windows the install needs a C toolchain
-    (libz-sys); maintainers without one should rely on the CI job or use
-    WSL / Linux.
+    cargo-public-api 在 CI 通过 `cargo install --locked cargo-public-api`
+    安装。Windows 本地装需要 C 工具链 (libz-sys); 没装的维护者请走 CI 任务
+    或 WSL / Linux。
 
-    Why per-crate baselines: the gate exists to surface accidental drift in
-    the *frozen* layer (kernel, ffi, contract-*). Domain/app/infra crates
-    iterate quickly; they intentionally have no baseline yet.
+    为什么按 crate 各自基线: 闸门只关心**冻结层** (kernel、ffi、contract-*)
+    的飘移。domain / app / infra 这些 crate 还在快速迭代, 故意还没建基线。
 #>
 
 [CmdletBinding()]
@@ -37,15 +34,13 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 Set-Location $repo
 
-# Crates whose public API is frozen and therefore gated. Adding a crate here
-# is a one-way commitment: future PRs that change its surface must update
-# the baseline in the same PR.
+# 已经把公开 API 冻结起来、需要被闸门盯着的 crate。在这里新增是一次性承诺:
+# 后续修改它公开面的 PR 必须在同一个 PR 里更新基线。
 $TrackedCrates = @('kernel', 'ffi', 'contract-auth')
 
-# Sanity-check that cargo-public-api is on PATH. We do NOT auto-install —
-# the install path is environment-specific (CI: apt+cargo; macOS: cargo;
-# Windows: WSL or installed toolchain). Better to fail loudly with the
-# correct one-liner than to surprise the dev.
+# 校验 cargo-public-api 是否在 PATH 上。我们故意**不**自动安装 —— 各环境
+# 的安装路径不同 (CI: apt+cargo; macOS: cargo; Windows: WSL 或装好的工具链)。
+# 直接报错并给出唯一一行修复命令, 好过悄悄给开发者一个意外。
 $tool = Get-Command 'cargo-public-api' -ErrorAction SilentlyContinue
 if (-not $tool) {
     Write-Host "cargo-public-api not found on PATH." -ForegroundColor Red
@@ -67,8 +62,8 @@ foreach ($crate in $TrackedCrates) {
 
     Write-Host "→ Snapshotting public API of '$crate'..." -ForegroundColor Cyan
 
-    # `--simplified` collapses derived impls — they're not stable identifiers
-    # we want to bikeshed on. `--color never` keeps the snapshot diff-able.
+    # `--simplified` 把派生的 impl 折叠掉 —— 那些不是我们想 bikeshed 的稳定
+    # 标识符。`--color never` 让快照可以拿来做 diff。
     $args = @('public-api', '-p', "archforge-$crate", '--simplified', '--color', 'never')
     $current = & cargo @args 2>&1
     if ($LASTEXITCODE -ne 0) {
@@ -93,10 +88,9 @@ foreach ($crate in $TrackedCrates) {
 
     $baselineText = (Get-Content $baseline -Raw)
 
-    # Placeholder baseline: a file containing only the bootstrap sentinel is
-    # treated as "not yet established". The job logs a warning so CI ships
-    # green on first introduction, while later PRs that touch the public
-    # surface get a clear nudge to run -Update.
+    # 占位基线: 文件内容只有 bootstrap 哨兵注释时, 视为"尚未建立基线"。
+    # 任务会打 warning 让 CI 第一次引入时仍能绿; 后续修过公开面的 PR 会被
+    # 明确提醒去跑 -Update。
     if ($baselineText -match '^# pending bootstrap') {
         Write-Host "   ⚠  placeholder baseline — run with -Update to lock the current surface" -ForegroundColor Yellow
         Set-Content -Path (Join-Path $baselineDir 'current.txt') -Value $currentText -NoNewline
@@ -104,7 +98,7 @@ foreach ($crate in $TrackedCrates) {
     }
 
     if ($baselineText -ne $currentText) {
-        # Persist current for inspection in CI artifacts.
+        # 把当前快照落到 CI artifact 里供检视。
         Set-Content -Path (Join-Path $baselineDir 'current.txt') -Value $currentText -NoNewline
         $drift += [pscustomobject]@{
             Crate    = $crate
@@ -131,7 +125,7 @@ if ($drift.Count -gt 0) {
     foreach ($d in $drift) {
         Write-Host ""
         Write-Host "—— $($d.Crate) ——" -ForegroundColor Red
-        # `git --no-pager diff --no-index` is available everywhere git is.
+        # `git --no-pager diff --no-index` 在所有装了 git 的地方都可用。
         & git --no-pager diff --no-index --unified=1 -- $d.Baseline $d.Current
     }
     Write-Host ""

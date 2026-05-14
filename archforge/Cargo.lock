@@ -26,10 +26,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "archforge-app-notes"
+version = "0.1.0"
+dependencies = [
+ "archforge-contract-notes",
+ "archforge-domain-notes",
+ "archforge-infra-notes-memory",
+ "archforge-kernel",
+ "async-trait",
+ "tokio",
+]
+
+[[package]]
 name = "archforge-conformance"
 version = "0.1.0"
 dependencies = [
  "archforge-contract-auth",
+ "archforge-contract-notes",
  "archforge-kernel",
  "async-trait",
  "futures",
@@ -49,10 +62,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "archforge-contract-notes"
+version = "0.1.0"
+dependencies = [
+ "archforge-kernel",
+ "async-trait",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "archforge-domain-auth"
 version = "0.1.0"
 dependencies = [
  "archforge-contract-auth",
+ "archforge-kernel",
+]
+
+[[package]]
+name = "archforge-domain-notes"
+version = "0.1.0"
+dependencies = [
+ "archforge-contract-notes",
  "archforge-kernel",
 ]
 
@@ -90,6 +122,18 @@ version = "0.1.0"
 dependencies = [
  "archforge-conformance",
  "archforge-contract-auth",
+ "archforge-kernel",
+ "async-trait",
+ "dashmap",
+ "tokio",
+]
+
+[[package]]
+name = "archforge-infra-notes-memory"
+version = "0.1.0"
+dependencies = [
+ "archforge-conformance",
+ "archforge-contract-notes",
  "archforge-kernel",
  "async-trait",
  "dashmap",
@@ -534,6 +578,18 @@ name = "memchr"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
+
+[[package]]
+name = "notes-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "archforge-app-notes",
+ "archforge-contract-notes",
+ "archforge-infra-notes-memory",
+ "archforge-kernel",
+ "tokio",
+]
 
 [[package]]
 name = "num-traits"

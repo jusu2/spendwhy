@@ -1,24 +1,20 @@
-//! Panic-isolation guards.
+//! panic 隔离守门员。
 //!
-//! The two entry points — [`guard_sync`] and [`guard_async`] — share three
-//! design choices that you should understand before using or extending them:
+//! 两个入口 —— [`guard_sync`] 和 [`guard_async`] —— 共享三条设计要点,
+//! 用之前请先读懂:
 //!
-//! 1. **Catch is final.** A caught panic is converted to
-//!    [`AppError::Internal`] with the prefix [`PANIC_INTERNAL_TAG`]
-//!    (`"panic: "`) so downstream code can distinguish "the use case
-//!    intentionally signalled Internal" from "the runtime caught a panic"
-//!    without parsing the message. The tag is part of the public contract.
+//! 1. **捕获即终结。** 被捕到的 panic 会转成 [`AppError::Internal`], 前缀
+//!    是 [`PANIC_INTERNAL_TAG`] (`"panic: "`)。下游代码无需解析文案就能
+//!    区分 "use case 主动抛 Internal" vs "运行时捕到了 panic"。
+//!    这个前缀是公开契约的一部分。
 //!
-//! 2. **No double catch.** Wrapping a guarded call inside another guard is
-//!    safe but redundant: nested guards return the inner result verbatim
-//!    because the inner guard already converted the panic before the outer
-//!    one could see it. This keeps reporting non-duplicated.
+//! 2. **不重复捕获。** 一个被守门员包过的调用再被外层守门员包一次是安全
+//!    且幂等的: 内层守门员已经把 panic 转成 `AppError`, 外层看到的就是
+//!    普通 `Err`, 不会再触发上报。这样日志不重复。
 //!
-//! 3. **`AssertUnwindSafe` is a promise the caller makes.** The closure
-//!    being guarded must not leave invariants broken if it panics
-//!    mid-execution (no half-written files held inside a `Mutex`, etc.).
-//!    For shared state, prefer `parking_lot::Mutex` (no poisoning) or
-//!    explicit rollback in `Drop`.
+//! 3. **`AssertUnwindSafe` 是调用方的承诺。** 被守门员包住的闭包/future
+//!    不能在 panic 时留下半成品状态 (持锁中写一半文件、刷一半缓冲等)。
+//!    共享状态优先用 `parking_lot::Mutex` (无 poison) 或在 `Drop` 里显式回滚。
 
 use std::panic::AssertUnwindSafe;
 
@@ -27,21 +23,19 @@ use futures::FutureExt;
 
 use crate::reporter::{report_panic, PanicEvent};
 
-/// The fixed prefix attached to every `AppError::Internal` produced by a
-/// caught panic. Stable across versions; do not depend on the remainder of
-/// the message.
+/// 由捕获 panic 产生的每个 `AppError::Internal` 都带的固定前缀。
+/// 跨版本稳定; **不要**依赖前缀之后的具体文案。
 pub const PANIC_INTERNAL_TAG: &str = "panic: ";
 
-/// Synchronous panic guard.
+/// 同步守门员。
 ///
-/// Runs `f` to completion. On panic, the payload is extracted, fed to the
-/// installed [`PanicReporter`], and the call returns
-/// `Err(AppError::Internal("panic: <message>"))`. Business `Err` values are
-/// passed through unchanged.
+/// 跑完 `f`。如果 panic, 提取 payload, 喂给已装好的 [`PanicReporter`],
+/// 然后返回 `Err(AppError::Internal("panic: <message>"))`。
+/// 业务自身的 `Err` 直通, 不动。
 ///
 /// [`PanicReporter`]: crate::PanicReporter
 ///
-/// # Example
+/// # 示例
 ///
 /// ```
 /// use archforge_ffi::guard_sync;
@@ -63,14 +57,12 @@ where
     }
 }
 
-/// Asynchronous panic guard.
+/// 异步守门员。
 ///
-/// Awaits `fut` to completion. On panic at any `.await` boundary, the panic
-/// is caught, reported, and converted to
-/// `Err(AppError::Internal("panic: <message>"))`. Business `Err` values are
-/// passed through unchanged.
+/// `await` 整个 `fut`。任何 `.await` 点 panic 都会被捕到、上报, 然后转成
+/// `Err(AppError::Internal("panic: <message>"))`。业务自身的 `Err` 直通。
 ///
-/// # Example
+/// # 示例
 ///
 /// ```
 /// # use archforge_ffi::guard_async;
@@ -103,10 +95,9 @@ fn panic_to_app_error(payload: Box<dyn std::any::Any + Send>, site: &'static str
     AppError::Internal(format!("{PANIC_INTERNAL_TAG}{message}"))
 }
 
-/// Best-effort extraction of a human-readable string from a panic payload.
-/// Handles the two common payload types (`&'static str` and `String`); any
-/// other type degrades to the sentinel below so callers can still log
-/// something deterministic.
+/// 尽力从 panic payload 中提取可读字符串。常见两种 payload (`&'static str`
+/// 和 `String`) 都能直接拿到; 其它类型退化到下面的占位文本, 至少让日志
+/// 有一个确定性的输出。
 fn extract_panic_message(payload: &(dyn std::any::Any + Send)) -> String {
     if let Some(s) = payload.downcast_ref::<&'static str>() {
         (*s).to_string()
@@ -171,8 +162,7 @@ mod tests {
 
     #[test]
     fn nested_guards_do_not_double_wrap() {
-        // The inner guard converts the panic; the outer guard sees the
-        // Internal result and forwards it without re-tagging.
+        // 内层守门员先把 panic 转掉; 外层只看到 Internal 这个 Err, 不会再加 tag。
         let r: Result<u32, AppError> = guard_sync(|| guard_sync(|| panic!("once")));
         match r {
             Err(AppError::Internal(msg)) => {
@@ -203,7 +193,7 @@ mod tests {
 
     #[tokio::test]
     async fn async_panic_across_await_is_caught() {
-        // Ensures the catch survives a yield point.
+        // 验证守门员能跨越 yield 点继续工作。
         let r: Result<u32, AppError> = guard_async(async {
             tokio::task::yield_now().await;
             panic!("after-yield");

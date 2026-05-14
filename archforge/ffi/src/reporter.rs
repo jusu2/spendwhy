@@ -1,48 +1,45 @@
-//! Globally-installable panic reporter.
+//! 全局可装的 panic 上报器。
 //!
-//! When a guard catches a panic, the runtime needs to do **two** things:
+//! 守门员捕到一个 panic 时, 运行时要做**两**件事:
 //!
-//! 1. Tell the host (Dart / C / wherever) "this call failed" — handled by
-//!    [`crate::guard_sync`] / [`crate::guard_async`] returning
-//!    `AppError::Internal`.
-//! 2. Tell the operator (tracing / Sentry / structured logs) "a panic just
-//!    crossed a boundary, here is the message" — handled here.
+//! 1. 告诉宿主 (Dart / C / 哪里都行) "这次调用挂了" —— 由
+//!    [`crate::guard_sync`] / [`crate::guard_async`] 返回
+//!    `AppError::Internal` 来完成。
+//! 2. 告诉运维 (tracing / Sentry / 结构化日志) "刚才有 panic 跨过了边界, 文案
+//!    在这里" —— 由本模块完成。
 //!
-//! The reporter is set **once** at process boot. Subsequent installs are
-//! ignored to keep the contract trivially auditable; nothing in production
-//! should be flipping the reporter on the fly. Tests can reach into the
-//! reporter through their own mock via interior mutability.
+//! 上报器在**进程启动时装一次**, 之后再装会被忽略。这样契约简单可审计;
+//! 生产环境里不应该有任何代码在运行中翻转上报器。测试可以通过自家 mock
+//! 的内部可变性绕开这点。
 //!
-//! If no reporter is installed, panics are still caught and surfaced to the
-//! caller — they are simply not logged. Failing closed (silent) is the safer
-//! default than failing open (a missing logger blocking the FFI return).
+//! 如果没装上报器, panic 还是会被捕获、回给调用方 —— 只是不写日志。失败
+//! 静默 (fail closed) 比失败开放 (fail open) 安全, 后者意味着缺一个 logger
+//! 就能阻塞 FFI 返回。
 
 use std::sync::OnceLock;
 
-/// One panic event delivered to a [`PanicReporter`]. Borrowed strings to
-/// avoid allocations in the hot error path.
+/// 投递给 [`PanicReporter`] 的一次 panic 事件。借引用字符串避免在错误热路径
+/// 上额外分配。
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy)]
 pub struct PanicEvent<'a> {
-    /// Source guard that captured the panic: currently `"guard_sync"` or
-    /// `"guard_async"`. Stable; new guards add new strings, never rename.
+    /// 捕到 panic 的守门员名: 当前是 `"guard_sync"` 或 `"guard_async"`。
+    /// 稳定; 新的守门员只**新增**字符串, 永不重命名。
     pub site: &'static str,
-    /// Best-effort panic message extracted from the payload.
+    /// 从 payload 尽力提取出的 panic 消息。
     pub message: &'a str,
 }
 
-/// Receiver for panic events. Implementations should be `Send + Sync` and
-/// non-blocking — they run on whichever thread the panic happened on.
+/// panic 事件的接收方。实现需要是 `Send + Sync` 且**非阻塞** —— 它运行在
+/// panic 发生所在的那个线程上。
 pub trait PanicReporter: Send + Sync + 'static {
-    /// Called once per caught panic, before the [`AppError::Internal`] is
-    /// returned to the host.
+    /// 每捕到一个 panic 调一次, 在 [`AppError::Internal`] 被回给宿主**之前**。
     ///
     /// [`AppError::Internal`]: archforge_kernel::AppError::Internal
     fn report(&self, event: PanicEvent<'_>);
 }
 
-/// No-op reporter. Useful for tests or environments without a logging
-/// backend yet wired up.
+/// 空操作上报器。测试或者日志后端还没接好的环境用。
 #[derive(Debug, Default, Clone, Copy)]
 pub struct NoopReporter;
 
@@ -52,40 +49,38 @@ impl PanicReporter for NoopReporter {
 
 static REPORTER: OnceLock<Box<dyn PanicReporter>> = OnceLock::new();
 
-/// Install the process-wide panic reporter. The first call wins; subsequent
-/// calls return `Err` with the supplied reporter so the caller can dispose
-/// of it. Recommended call site: bridge crate `main` / FFI init function.
+/// 装上全进程唯一的 panic 上报器。第一次调用胜出; 后续调用会把传入的上报器
+/// 原样回 `Err`, 方便调用方释放。推荐调用点: bridge crate 的 `main` 或者
+/// FFI 初始化函数。
 ///
-/// # Example
+/// # 示例
 ///
 /// ```
 /// use archforge_ffi::{install_panic_reporter, NoopReporter};
-/// // Returns Ok(()) on the first install per process.
+/// // 进程内第一次调用返回 Ok(())。
 /// let _ = install_panic_reporter(NoopReporter);
 /// ```
 pub fn install_panic_reporter<R: PanicReporter>(reporter: R) -> Result<(), R> {
-    // OnceLock::set returns Err with the rejected value; we need to box, so
-    // we convert by hand to preserve the original `R`.
+    // OnceLock::set 失败时会把被拒的值回给你; 我们需要先 box, 所以这里手动
+    // 转一下, 把原始的 `R` 保留下来。
     if REPORTER.get().is_some() {
         return Err(reporter);
     }
     let boxed: Box<dyn PanicReporter> = Box::new(reporter);
-    // Race-safe: a concurrent install loses, but we already validated above
-    // for the common case.
+    // 竞态安全: 并发 install 时落败的一方拿到 Err, 上面那一步已经覆盖了
+    // 普通场景。
     REPORTER.set(boxed).map_err(|_| {
-        // The reporter we returned to the caller is the one we tried to
-        // install; surface a no-op stand-in so the signature stays useful
-        // even on the rare race. This branch is exercised only by tests
-        // that install concurrently.
+        // 此时我们已确认 REPORTER 已被装, 没什么可以原样回给调用方的有效
+        // 上报器了。不用 unsafe 凑不出 `R`, 所以 panic —— 而它会被外层守门员
+        // 接住。实际上, 上面的 OnceLock 检查已经把这个分支挡掉了。
         unreachable_reporter()
     })
 }
 
 fn unreachable_reporter<R: PanicReporter>() -> R {
-    // Caller has already confirmed REPORTER is set; we have nothing
-    // meaningful to hand back. Producing `R` without unsafe is impossible,
-    // so we panic — which in turn would be caught by an outer guard. In
-    // practice the OnceLock check above prevents reaching here.
+    // 调用方已确认 REPORTER 已设置; 我们没有什么有意义的值能交回去。不用
+    // unsafe 没法凭空生成 `R`, 所以这里 panic —— 反过来又会被外层守门员
+    // 接住。实战中上面的 OnceLock 检查就已经避免走到这里了。
     panic!("install_panic_reporter racing install on the same process");
 }
 
@@ -100,11 +95,9 @@ mod tests {
     use super::*;
     use std::sync::Mutex;
 
-    // The OnceLock is process-global; cargo test runs each #[test] in its
-    // own thread of the same process. We install a *capturing* reporter
-    // exactly once and assert behaviour through it across multiple tests.
-    // Test ordering is not guaranteed, so each test must be tolerant of
-    // events from sibling tests.
+    // OnceLock 是全进程的; `cargo test` 把每个 #[test] 跑在同一进程的不同
+    // 线程里。我们只装一次**带捕获能力**的上报器, 然后跨多个测试通过它来
+    // 断言行为。测试顺序不保证, 所以每个测试都要能容忍兄弟测试也产生事件。
 
     #[derive(Default)]
     struct CapturingReporter {
@@ -120,9 +113,9 @@ mod tests {
         }
     }
 
-    // We need a stable handle to inspect the reporter after install, so the
-    // reporter lives in a static; install_panic_reporter takes ownership
-    // of a `Box` clone of the reference shape via a trait object adapter.
+    // 装好之后我们还要能在测试里检视上报器, 所以上报器活在静态里;
+    // install_panic_reporter 接管的是一个把引用形态的实现转成 trait 对象
+    // 的转发器。
     struct Forwarder(&'static CapturingReporter);
     impl PanicReporter for Forwarder {
         fn report(&self, event: PanicEvent<'_>) {
@@ -134,14 +127,14 @@ mod tests {
         std::sync::LazyLock::new(CapturingReporter::default);
 
     fn ensure_installed() {
-        // Idempotent across tests; second install is a benign Err.
+        // 跨测试幂等; 第二次 install 拿到的 Err 是良性的。
         let _ = install_panic_reporter(Forwarder(&GLOBAL_REPORTER));
     }
 
     #[test]
     fn install_is_idempotent() {
         ensure_installed();
-        // Second install must not crash and must not replace the reporter.
+        // 第二次 install 既不能崩, 也不能替换掉已装好的上报器。
         let err = install_panic_reporter(NoopReporter);
         assert!(err.is_err(), "second install must be rejected");
     }

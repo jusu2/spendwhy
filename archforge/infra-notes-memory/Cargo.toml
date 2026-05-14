@@ -1,7 +1,7 @@
 [package]
-name = "archforge-conformance"
+name = "archforge-infra-notes-memory"
 version = "0.1.0"
-description = "Port conformance test harness — every adapter must pass the same property tests."
+description = "In-memory adapter for notes ports (DashMap). Ideal for tests and UI prototyping."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -15,8 +15,10 @@ missing_docs = "warn"
 
 [dependencies]
 archforge-kernel = { workspace = true }
-archforge-contract-auth = { workspace = true }
 archforge-contract-notes = { workspace = true }
 async-trait = { workspace = true }
+dashmap = { workspace = true }
+
+[dev-dependencies]
 tokio = { workspace = true }
-futures = { workspace = true }
+archforge-conformance = { workspace = true }

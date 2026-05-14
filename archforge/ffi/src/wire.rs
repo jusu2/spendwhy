@@ -1,31 +1,25 @@
-//! Wire-safe error DTO.
+//! Wire-safe 错误 DTO。
 //!
-//! ## Why a separate type?
+//! ## 为什么单独搞一个类型?
 //!
-//! ArchForge invariant #4: [`AppError`] is `Serialize`-only — never
-//! `Deserialize`. The reasoning is straightforward: if a peer (Dart code,
-//! another process, a malicious wire participant) can fabricate an
-//! `AppError::Internal("foo")` by sending crafted JSON, upstream branches
-//! that switch on the variant become exploitable. The kernel error type
-//! therefore has no `Deserialize` impl by design.
+//! ArchForge 不变量 #4: [`AppError`] **只能** `Serialize`, **不能** `Deserialize`。
+//! 道理直白: 如果一个对端 (Dart 代码、另一个进程、恶意的 wire 参与方) 能通过
+//! 伪造 JSON 直接造一个 `AppError::Internal("foo")`, 那么上游凡是按 variant
+//! 分支的代码都可能被攻击。所以内核错误类型设计上就没有 `Deserialize` impl。
 //!
-//! But every FFI bridge needs to take the error on the wire and *parse* it
-//! on the far side. Dart, Swift, Kotlin, C# — all of them want a stable
-//! shape with a tag they can `switch` on. So we introduce [`WireError`]: a
-//! cousin of `AppError` that
+//! 但每条 FFI 桥还是得把 wire 上的错误**解析**回来给对端。Dart、Swift、
+//! Kotlin、C# —— 它们都想要一个稳定的形状, 带一个能 `switch` 的 tag。
+//! 所以我们引入 [`WireError`]: `AppError` 的表亲, 满足
 //!
-//! - is `Serialize + Deserialize`,
-//! - has a redundant `is_panic` boolean so consumers can distinguish a
-//!   panic-derived `Internal` from an intentional `Internal` without parsing
-//!   the message,
-//! - carries a stable `kind` discriminator (lowercase snake_case strings,
-//!   never the Rust enum name — that would couple every wire consumer to
-//!   Rust's identifier renames).
+//! - `Serialize + Deserialize`,
+//! - 有一个**冗余**的 `is_panic` 布尔, 让消费方不需要解析文案就能区分
+//!   panic 来源的 `Internal` 和业务自己抛的 `Internal`,
+//! - 带一个稳定的 `kind` 鉴别符 (小写 snake_case 字符串, 永远不直接用 Rust
+//!   枚举名 —— 否则每个 wire 消费方都被绑死在 Rust 标识符的改名上)。
 //!
-//! Conversion is **one-way**: `From<AppError> for WireError`. There is no
-//! `From<WireError> for AppError`, and there should never be one — the
-//! whole point of the asymmetry is to keep `AppError`'s arm set
-//! untransferable.
+//! 转换是**单向**的: `From<AppError> for WireError`。没有
+//! `From<WireError> for AppError`, 也永远不该有 —— 这种不对称的全部意义就是
+//! 让 `AppError` 的分支集对外不可转移。
 
 use std::fmt;
 
@@ -34,32 +28,30 @@ use serde::{Deserialize, Serialize};
 
 use crate::guard::PANIC_INTERNAL_TAG;
 
-/// Stable wire discriminator for a [`WireError`].
+/// [`WireError`] 的稳定 wire 鉴别符。
 ///
-/// String values are part of the public contract: cross-language consumers
-/// must match on them. Adding a variant here is *backwards-compatible* iff
-/// existing consumers handle "unknown kind" — which they should, because
-/// the `#[serde(other)]` `Unknown` arm exists for exactly that.
+/// 字符串值是公开契约的一部分: 跨语言消费方需要按它分支。在这里新增 variant
+/// 是**向后兼容**的, 前提是现有消费方处理"未知 kind" —— 它们应该处理, 因为
+/// `#[serde(other)]` 的 `Unknown` 分支正是为此存在的。
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WireErrorKind {
-    /// Resource does not exist (`AppError::NotFound`).
+    /// 资源不存在 (`AppError::NotFound`)。
     NotFound,
-    /// State conflict (`AppError::Conflict`).
+    /// 状态冲突 (`AppError::Conflict`)。
     Conflict,
-    /// Input violates a domain invariant (`AppError::Invalid`).
+    /// 输入违反领域不变量 (`AppError::Invalid`)。
     Invalid,
-    /// Dependency unavailable; retry may succeed (`AppError::Unavailable`).
+    /// 依赖不可用; 重试可能成功 (`AppError::Unavailable`)。
     Unavailable,
-    /// Caller lacks permission (`AppError::Forbidden`).
+    /// 调用方权限不足 (`AppError::Forbidden`)。
     Forbidden,
-    /// Deadline expired (`AppError::DeadlineExceeded`).
+    /// 截止时间已过 (`AppError::DeadlineExceeded`)。
     DeadlineExceeded,
-    /// Unrecoverable internal failure (`AppError::Internal`).
+    /// 不可恢复的内部错误 (`AppError::Internal`)。
     Internal,
-    /// Wire received a kind this consumer does not understand. Treat as
-    /// terminal but loggable.
+    /// wire 收到的 kind 本消费方不认识。当成终态错误处理, 但要落日志。
     #[serde(other)]
     Unknown,
 }
@@ -80,28 +72,24 @@ impl fmt::Display for WireErrorKind {
     }
 }
 
-/// Wire-safe error DTO. See module docs for why this exists.
+/// Wire-safe 错误 DTO。为什么单独造一个, 看模块文档。
 ///
-/// Field order is part of the contract; serialised shape is intentionally
-/// shallow and JSON-friendly.
+/// 字段顺序是契约的一部分; 序列化形状故意保持**扁平**、JSON 友好。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WireError {
-    /// Stable wire discriminator.
+    /// 稳定的 wire 鉴别符。
     pub kind: WireErrorKind,
-    /// Human-readable detail. Already redacted of internal-only context by
-    /// the time it reaches a wire consumer.
+    /// 人类可读的描述。到达 wire 消费方时, 仅内部用的上下文已经被裁过。
     pub message: String,
-    /// `true` iff the corresponding `AppError::Internal` was produced by a
-    /// caught panic (its message starts with [`PANIC_INTERNAL_TAG`]).
-    /// Consumers can use this to route reporting (Sentry / Crashlytics)
-    /// without parsing strings.
+    /// 当且仅当对应的 `AppError::Internal` 来自捕获 panic 时为 `true`
+    /// (消息以 [`PANIC_INTERNAL_TAG`] 开头)。消费方可以据此把上报路由到
+    /// Sentry / Crashlytics, 而不需要解析字符串。
     #[serde(default)]
     pub is_panic: bool,
 }
 
 impl WireError {
-    /// Construct directly. Most callers should use [`From<AppError>`] or
-    /// [`Self::from_result`].
+    /// 直接构造。多数调用方应该用 [`From<AppError>`] 或 [`Self::from_result`]。
     pub fn new(kind: WireErrorKind, message: impl Into<String>) -> Self {
         Self {
             kind,
@@ -110,15 +98,14 @@ impl WireError {
         }
     }
 
-    /// Mark this error as panic-derived.
+    /// 把当前错误标成 panic 来源。
     pub fn with_panic_flag(mut self, is_panic: bool) -> Self {
         self.is_panic = is_panic;
         self
     }
 
-    /// Map a `Result<T, AppError>` into a `Result<T, WireError>` for the
-    /// outer FFI return type. Equivalent to `result.map_err(WireError::from)`
-    /// but reads better at call sites.
+    /// 把 `Result<T, AppError>` 转成 `Result<T, WireError>`, 供 FFI 入口出参
+    /// 使用。等价于 `result.map_err(WireError::from)`, 但调用点更易读。
     pub fn from_result<T>(result: Result<T, AppError>) -> Result<T, WireError> {
         result.map_err(WireError::from)
     }
@@ -151,10 +138,10 @@ impl From<AppError> for WireError {
                 let is_panic = m.starts_with(PANIC_INTERNAL_TAG);
                 WireError::new(WireErrorKind::Internal, m).with_panic_flag(is_panic)
             }
-            // AppError is `#[non_exhaustive]`; future variants degrade to
-            // Internal so callers always get a wire-safe payload. When a new
-            // variant lands here, the cargo-public-api gate will surface it
-            // for explicit mapping.
+            // AppError 是 `#[non_exhaustive]`; 将来新增的 variant 默认退化到
+            // Internal, 让调用方永远拿到一个 wire-safe 的载荷。新 variant
+            // 一旦落到这里, cargo-public-api 闸门会把它显式标出来, 提醒补一
+            // 个显式映射。
             other => WireError::new(WireErrorKind::Internal, other.to_string()),
         }
     }
@@ -205,7 +192,7 @@ mod tests {
     fn json_round_trip_is_stable() {
         let wire = WireError::new(WireErrorKind::Conflict, "dup email").with_panic_flag(false);
         let json = serde_json::to_string(&wire).unwrap();
-        // Stable shape — consumers depend on these key names.
+        // 形状稳定 —— 消费方依赖这些 key 名。
         assert!(json.contains(r#""kind":"conflict""#), "got {json}");
         assert!(json.contains(r#""message":"dup email""#), "got {json}");
         assert!(json.contains(r#""is_panic":false"#), "got {json}");
@@ -216,8 +203,7 @@ mod tests {
 
     #[test]
     fn unknown_kind_decays_to_unknown() {
-        // Forward compatibility: an older consumer reading a future kind
-        // must not crash.
+        // 向前兼容: 老消费方读到将来才有的 kind 不能崩。
         let json = r#"{"kind":"future_kind_we_havent_invented","message":"hi","is_panic":false}"#;
         let parsed: WireError = serde_json::from_str(json).unwrap();
         assert_eq!(parsed.kind, WireErrorKind::Unknown);
@@ -226,7 +212,7 @@ mod tests {
 
     #[test]
     fn is_panic_defaults_to_false_if_absent() {
-        // Older Rust producers that pre-date the field must still decode.
+        // 早于该字段引入的 Rust 生产者发来的载荷, 也必须能解析。
         let json = r#"{"kind":"internal","message":"older payload"}"#;
         let parsed: WireError = serde_json::from_str(json).unwrap();
         assert!(!parsed.is_panic);

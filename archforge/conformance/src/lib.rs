@@ -18,6 +18,10 @@
 #![warn(rust_2018_idioms, missing_docs)]
 #![deny(unused_must_use)]
 
+mod notes;
+
+pub use notes::note_repo_conformance;
+
 use archforge_contract_auth::{
     DisplayName, Email, UserDto, UserId, UserReader, UserWriter, Version,
 };

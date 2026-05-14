@@ -1,7 +1,7 @@
 [package]
-name = "archforge-conformance"
+name = "archforge-contract-notes"
 version = "0.1.0"
-description = "Port conformance test harness — every adapter must pass the same property tests."
+description = "Notes bounded-context contract: DTOs, commands, events, port traits."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -15,8 +15,9 @@ missing_docs = "warn"
 
 [dependencies]
 archforge-kernel = { workspace = true }
-archforge-contract-auth = { workspace = true }
-archforge-contract-notes = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
 async-trait = { workspace = true }
-tokio = { workspace = true }
-futures = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

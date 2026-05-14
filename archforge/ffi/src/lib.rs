@@ -1,60 +1,55 @@
-//! # ArchForge FFI Boundary Guards
+//! # ArchForge FFI 边界守门员
 //!
-//! The hard rule at any FFI boundary is **a Rust panic must not unwind into a
-//! foreign caller** — doing so is undefined behaviour. This crate provides the
-//! three primitives every public entry point needs:
+//! 任何 FFI 边界上的硬约束是: **Rust 的 panic 绝对不能 unwind 进外部调用方** ——
+//! 那是未定义行为。本 crate 提供每个公开入口点都需要的三件套:
 //!
-//! 1. [`guard_sync`] / [`guard_async`] — wrap any closure or future, catch
-//!    panics, and return a domain-typed [`AppError::Internal`].
-//! 2. [`WireError`] — a *separately defined* DTO that is `Serialize +
-//!    Deserialize`. The kernel's [`AppError`] is `Serialize`-only by design
-//!    (ArchForge invariant #4 — otherwise a peer could fabricate `Internal`
-//!    arms). `WireError` is the wire-safe cousin: lossy in one direction
-//!    (`AppError -> WireError`), never the reverse inside Rust.
-//! 3. [`PanicReporter`] — a globally installable trait so that captured
-//!    panics flow into your tracing / Sentry / log pipeline before being
-//!    redacted for the caller.
+//! 1. [`guard_sync`] / [`guard_async`] — 包住任意闭包或 future, 捕获 panic,
+//!    返回一个域内可识别的 [`AppError::Internal`]。
+//! 2. [`WireError`] — **单独定义**的 DTO, 同时实现 `Serialize + Deserialize`。
+//!    kernel 的 [`AppError`] 按设计是 Serialize-only (ArchForge 不变量 #4 ——
+//!    否则对端可以伪造 `Internal` 分支)。`WireError` 是它的 wire-safe 表亲:
+//!    单向有损映射 (`AppError -> WireError`), Rust 内部永远不做反向。
+//! 3. [`PanicReporter`] — 一个全局可装的 trait, 让捕到的 panic 在被回给调用方
+//!    之前先流过你的 tracing / Sentry / 日志管线。
 //!
-//! ## Why a dedicated crate?
+//! ## 为什么单独开一个 crate?
 //!
-//! Earlier ArchForge versions parked panic safety inside the transport
-//! pattern library (`pattern_t_panic_safety`). That was fine for tutorial
-//! purposes but bound the guard to `TransportError`, leaking transport
-//! semantics into auth, billing, sync, etc. — every bounded context would
-//! have re-implemented the same wheel against its own narrow error.
+//! ArchForge 早期版本把 panic 安全藏在 transport 模式库
+//! (`pattern_t_panic_safety`) 里。作为教学样例 OK, 但守门员被锚定到
+//! `TransportError`, 把 transport 语义渗到 auth、billing、sync……每个 bounded
+//! context 都得各自再造一遍同样的轮子。
 //!
-//! `archforge-ffi` lifts the guard up to the *kernel error*, so a single
-//! `guard_async(...)` works for every use case in every slice.
+//! `archforge-ffi` 把守门员上提到**内核错误**这一层, 一个 `guard_async(...)`
+//! 对每个切片的每个 use case 都通用。
 //!
-//! ## Layering
+//! ## 层级位置
 //!
 //! ```text
 //!   bridge-* (FRB / cbindgen)
-//!       ↓ depends on
-//!   archforge-ffi   ← you are here
-//!       ↓ depends on
+//!       ↓ 依赖
+//!   archforge-ffi   ← 你在这儿
+//!       ↓ 依赖
 //!   archforge-kernel
 //! ```
 //!
-//! `archforge-ffi` deliberately does **not** depend on any `contract-*` or
-//! `domain-*` crate. It is the narrowest possible adapter between "anything
-//! that can return `AppError`" and "anything that crosses an ABI."
+//! `archforge-ffi` 故意**不**依赖任何 `contract-*` 或 `domain-*` crate。它是
+//! "任何可能返回 `AppError`" 与 "任何跨 ABI 的入口" 之间最窄的一段适配。
 //!
-//! ## Example
+//! ## 示例
 //!
 //! ```
 //! use archforge_ffi::{guard_sync, WireError};
 //! use archforge_kernel::AppError;
 //!
-//! // A normal use-case error flows through unchanged.
+//! // 普通 use case 错误直通, 不会被改写。
 //! let business: Result<i32, AppError> = guard_sync(|| Err(AppError::NotFound("u/1".into())));
 //! assert!(matches!(business, Err(AppError::NotFound(_))));
 //!
-//! // A panic becomes a domain-typed Internal — never a crash.
+//! // panic 被转成域内 Internal —— 进程不会崩。
 //! let panicked: Result<i32, AppError> = guard_sync(|| panic!("boom"));
 //! assert!(matches!(panicked, Err(AppError::Internal(_))));
 //!
-//! // Convert either result into a WireError before serialising to the host.
+//! // 任意结果都可以再转成 WireError 后序列化给宿主。
 //! let wire_err = WireError::from_result(panicked).unwrap_err();
 //! assert!(wire_err.is_panic);
 //! ```

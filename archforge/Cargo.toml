@@ -9,7 +9,12 @@ members = [
     "app-auth",
     "infra-auth-memory",
     "infra-auth-jsonfile",
+    "contract-notes",
+    "domain-notes",
+    "app-notes",
+    "infra-notes-memory",
     "examples/auth-cli",
+    "examples/notes-cli",
 ]
 
 # Pin shared dependencies once for the whole workspace. Member crates inherit
@@ -66,6 +71,10 @@ archforge-domain-auth         = { path = "domain-auth" }
 archforge-app-auth            = { path = "app-auth" }
 archforge-infra-auth-memory   = { path = "infra-auth-memory" }
 archforge-infra-auth-jsonfile = { path = "infra-auth-jsonfile" }
+archforge-contract-notes      = { path = "contract-notes" }
+archforge-domain-notes        = { path = "domain-notes" }
+archforge-app-notes           = { path = "app-notes" }
+archforge-infra-notes-memory  = { path = "infra-notes-memory" }
 
 [profile.release]
 lto = "thin"
